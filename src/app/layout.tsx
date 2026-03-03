@@ -7,7 +7,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white text-gray-900">
+      <body className="bg-gradient-to-b from-[#F5F5F5] to-white min-h-screen">
         <header className="border-b">
           <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between">
             <h1 className="font-bold text-lg">
