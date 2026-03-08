@@ -1,4 +1,5 @@
 import "./globals.css";
+import Link from "next/link"
 
 export default function RootLayout({
   children,
@@ -14,8 +15,9 @@ export default function RootLayout({
               Sri Ceylon Porcelain
             </h1>
             <nav className="space-x-6">
-              <a href="/" className="hover:underline">Home</a>
-              <a href="/products" className="hover:underline">Products</a>
+                <Link href="/">Home</Link>
+  <Link href="/products">Products</Link>
+  <Link href="/forms">Forms</Link>
             </nav>
           </div>
         </header>
