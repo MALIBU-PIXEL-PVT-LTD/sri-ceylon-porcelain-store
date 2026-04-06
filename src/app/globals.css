@@ -1,5 +1,41 @@
 @import "tailwindcss";
 
-html, body {
-  height: 100%;
+@layer base {
+  html {
+    height: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100%;
+    color: #1c1917;
+    font-feature-settings:
+      "kern" 1,
+      "liga" 1,
+      "calt" 1;
+    /* Warm stone-50 base with a soft vertical lift — calm, not busy */
+    background-color: #fafaf9;
+    background-image: linear-gradient(
+      180deg,
+      #f5f5f4 0%,
+      #fafaf9 45%,
+      #ffffff 100%
+    );
+    background-attachment: fixed;
+  }
+
+  :where(h1, h2, h3, h4) {
+    font-feature-settings:
+      "kern" 1,
+      "liga" 1,
+      "lnum" 1,
+      "pnum" 1;
+    text-wrap: balance;
+  }
+
+  :where(p) {
+    text-wrap: pretty;
+  }
 }
