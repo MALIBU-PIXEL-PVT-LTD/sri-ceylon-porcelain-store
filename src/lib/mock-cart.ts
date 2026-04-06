@@ -18,7 +18,7 @@ export const mockCartLines: CartLine[] = [
     image: "/products/premium-porcelain-cup-1.jpg",
     price: 1800,
     quantity: 1,
-    size: "250ml",
+    size: "200ml",
   },
   {
     id: "3",
