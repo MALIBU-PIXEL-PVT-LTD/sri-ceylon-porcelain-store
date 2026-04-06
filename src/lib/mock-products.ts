@@ -1,4 +1,4 @@
-import { Product } from "@/types/product"
+import type { Product } from "@/types/product";
 
 export const mockProducts: Product[] = [
   {
@@ -53,4 +53,4 @@ export const mockProducts: Product[] = [
     inStock: false,
     sizes: ['200ml', '250ml', '300ml'],
   },
-]
+];
