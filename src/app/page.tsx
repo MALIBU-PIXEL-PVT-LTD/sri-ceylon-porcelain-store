@@ -16,7 +16,7 @@ const categories = [
   },
   {
     title: "Serveware",
-    description: "Pieces that elevate how food is shared at the table.",
+    description: "Pieces that elevate food is shared at the table.",
   },
 ] as const;
 
