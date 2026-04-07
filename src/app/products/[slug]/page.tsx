@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ProductGallery, ProductInfo } from "@/components/product";
-import { Button } from "@/components/ui";
+import { ProductGallery, ProductInfo, ProductPurchaseForm } from "@/components/product";
 import { mockProducts } from "@/lib/mock-products";
 
 export default async function ProductPage({
@@ -36,42 +35,7 @@ export default async function ProductPage({
         <div>
           <ProductInfo product={product} />
 
-          {product.sizes && product.sizes.length > 0 && (
-            <section className="mt-10" aria-labelledby="size-heading">
-              <h2
-                id="size-heading"
-                className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500"
-              >
-                Size
-              </h2>
-
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                {product.sizes.map((size) => (
-                  <label
-                    key={size}
-                    className="relative flex cursor-pointer items-center justify-center rounded-sm border border-stone-200 bg-white p-3 transition-colors has-[:checked]:border-stone-900 has-[:checked]:bg-stone-900"
-                  >
-                    <input
-                      type="radio"
-                      name="size"
-                      value={size}
-                      className="peer sr-only"
-                    />
-                    <span className="text-sm font-medium text-stone-900 peer-checked:text-white">
-                      {size}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </section>
-          )}
-
-          <Button
-            disabled={!product.inStock}
-            className="mt-10 w-full"
-          >
-            Add to Cart
-          </Button>
+          <ProductPurchaseForm product={product} />
         </div>
       </article>
     </div>

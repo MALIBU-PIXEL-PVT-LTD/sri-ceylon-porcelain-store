@@ -3,30 +3,26 @@
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 import { CartDrawer } from "@/components/cart";
 import { Container } from "@/components/ui";
-import { mockCartLines } from "@/lib/mock-cart";
-
-/** Sum of line quantities — align with drawer mock data. */
-const mockCartQuantityTotal = mockCartLines.reduce(
-  (sum, line) => sum + line.quantity,
-  0
-);
+import { useCart } from "@/context/CartContext";
 
 const mainLinks = [
   { href: "/", label: "Home" },
   { href: "/products", label: "Products" },
 ] as const;
 
-function CartIconWithBadge() {
+function CartIconWithBadge({ count }: { count: number }) {
   return (
     <span className="relative inline-flex shrink-0">
       <ShoppingCart className="h-5 w-5" strokeWidth={1.5} aria-hidden />
-      <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-0.5 text-[10px] font-semibold tabular-nums leading-none text-white">
-        {mockCartQuantityTotal > 99 ? "99+" : mockCartQuantityTotal}
-      </span>
+      {count > 0 && (
+        <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-0.5 text-[10px] font-semibold tabular-nums leading-none text-white">
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
     </span>
   );
 }
@@ -34,12 +30,12 @@ function CartIconWithBadge() {
 export function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  /** Controls `CartDrawer` visibility (open/close). */
-  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
-
-  const closeCartDrawer = useCallback(() => {
-    setCartDrawerOpen(false);
-  }, []);
+  const {
+    totalQuantity,
+    cartDrawerOpen,
+    openCartDrawer,
+    closeCartDrawer,
+  } = useCart();
 
   const cartActive =
     pathname === "/cart" || pathname.startsWith("/cart/");
@@ -87,12 +83,12 @@ export function Navbar() {
                   ? "text-stone-900"
                   : "text-stone-500 hover:text-stone-900"
               }`}
-              aria-label={`Cart, ${mockCartQuantityTotal} items`}
+              aria-label={`Cart, ${totalQuantity} items`}
               aria-expanded={cartDrawerOpen}
               aria-controls="cart-drawer"
-              onClick={() => setCartDrawerOpen(true)}
+              onClick={openCartDrawer}
             >
-              <CartIconWithBadge />
+              <CartIconWithBadge count={totalQuantity} />
             </button>
           </nav>
 
@@ -177,15 +173,15 @@ export function Navbar() {
                     ? "text-stone-900"
                     : "text-stone-500 hover:text-stone-900"
                 }`}
-                aria-label={`Cart, ${mockCartQuantityTotal} items`}
+                aria-label={`Cart, ${totalQuantity} items`}
                 aria-expanded={cartDrawerOpen}
                 aria-controls="cart-drawer"
                 onClick={() => {
-                  setCartDrawerOpen(true);
+                  openCartDrawer();
                   setMenuOpen(false);
                 }}
               >
-                <CartIconWithBadge />
+                <CartIconWithBadge count={totalQuantity} />
               </button>
             </nav>
           </Container>
