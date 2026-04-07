@@ -73,7 +73,7 @@ export function CartItem({
             </p>
             <p className="text-sm font-medium tabular-nums text-stone-800">
               <span className="mr-1 text-[0.65rem] font-medium uppercase tracking-[0.14em] text-stone-400">
-                Rs
+                LKR
               </span>
               {line.price.toLocaleString()}
               <span className="ml-1.5 whitespace-nowrap text-[0.8125rem] font-normal text-stone-500">
@@ -128,7 +128,7 @@ export function CartItem({
           </span>
           <p className="shrink-0 text-xl font-semibold tabular-nums tracking-tight text-stone-900">
             <span className="mr-1 text-[0.65rem] font-medium uppercase tracking-[0.14em] text-stone-400">
-              Rs
+              LKR
             </span>
             {lineTotal.toLocaleString()}
           </p>

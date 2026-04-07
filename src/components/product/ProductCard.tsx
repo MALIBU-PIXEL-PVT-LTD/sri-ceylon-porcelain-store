@@ -30,9 +30,12 @@ export function ProductCard({ product }: ProductCardProps) {
           <h3 className="text-[0.9375rem] font-medium leading-snug tracking-tight text-stone-900 transition-colors duration-300 group-hover:text-stone-600">
             {product.name}
           </h3>
+          <p className="text-sm leading-relaxed text-stone-500">
+            {product.shortDescription}
+          </p>
           <p className="flex items-baseline gap-1.5 text-sm tabular-nums text-stone-800">
             <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-400">
-              Rs
+              LKR
             </span>
             <span className="font-medium tracking-tight">
               {product.price.toLocaleString()}

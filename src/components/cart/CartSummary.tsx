@@ -27,7 +27,7 @@ export function CartSummary({ lines, total, className = "" }: CartSummaryProps) 
         <span className="text-base font-medium text-stone-900">Total</span>
         <span className="text-xl font-medium tabular-nums tracking-tight text-stone-900">
           <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-400">
-            Rs
+            LKR
           </span>{" "}
           {subtotal.toLocaleString()}
         </span>

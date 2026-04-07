@@ -8,19 +8,34 @@ import type { Product } from "@/types/product";
 
 type ProductPurchaseFormProps = {
   product: Product;
+  selectedSize?: string;
+  onSelectedSizeChange?: (size: string) => void;
 };
 
-export function ProductPurchaseForm({ product }: ProductPurchaseFormProps) {
+export function ProductPurchaseForm({
+  product,
+  selectedSize,
+  onSelectedSizeChange,
+}: ProductPurchaseFormProps) {
   const { addItem } = useCart();
   const sizes = product.sizes ?? [];
-  const [selectedSize, setSelectedSize] = useState<string | undefined>(
+  const [internalSelectedSize, setInternalSelectedSize] = useState<string | undefined>(
     sizes[0]
   );
+  const activeSize = selectedSize ?? internalSelectedSize;
+
+  function handleSizeChange(size: string) {
+    if (onSelectedSizeChange) {
+      onSelectedSizeChange(size);
+      return;
+    }
+    setInternalSelectedSize(size);
+  }
 
   function handleAddToCart() {
     if (!product.inStock) return;
-    if (sizes.length > 0 && !selectedSize) return;
-    addItem(product, sizes.length > 0 ? selectedSize : undefined);
+    if (sizes.length > 0 && !activeSize) return;
+    addItem(product, sizes.length > 0 ? activeSize : undefined);
   }
 
   return (
@@ -44,8 +59,8 @@ export function ProductPurchaseForm({ product }: ProductPurchaseFormProps) {
                   type="radio"
                   name="size"
                   value={size}
-                  checked={selectedSize === size}
-                  onChange={() => setSelectedSize(size)}
+                  checked={activeSize === size}
+                  onChange={() => handleSizeChange(size)}
                   className="peer sr-only"
                 />
                 <span className="text-sm font-medium text-stone-900 peer-checked:text-white">
@@ -59,7 +74,7 @@ export function ProductPurchaseForm({ product }: ProductPurchaseFormProps) {
 
       <Button
         type="button"
-        disabled={!product.inStock || (sizes.length > 0 && !selectedSize)}
+        disabled={!product.inStock || (sizes.length > 0 && !activeSize)}
         className="mt-10 w-full"
         onClick={handleAddToCart}
       >

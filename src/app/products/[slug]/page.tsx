@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ProductGallery, ProductInfo, ProductPurchaseForm } from "@/components/product";
+import { ProductDetailsClient, ProductGallery } from "@/components/product";
 import { mockProducts } from "@/lib/mock-products";
 
 export default async function ProductPage({
@@ -32,11 +32,7 @@ export default async function ProductPage({
       <article className="mt-8 grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16">
         <ProductGallery images={product.images} alt={product.name} />
 
-        <div>
-          <ProductInfo product={product} />
-
-          <ProductPurchaseForm product={product} />
-        </div>
+        <ProductDetailsClient product={product} />
       </article>
     </div>
   );

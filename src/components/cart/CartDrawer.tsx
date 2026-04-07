@@ -108,7 +108,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
             </p>
             <p className="text-[1.75rem] font-medium leading-none tracking-tight text-stone-900 tabular-nums">
               <span className="mr-1.5 align-baseline text-xs font-medium uppercase tracking-[0.2em] text-stone-400">
-                Rs
+                LKR
               </span>
               {totalPrice.toLocaleString()}
             </p>
