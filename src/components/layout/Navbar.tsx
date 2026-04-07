@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingCart } from "lucide-react";
+import { LogIn, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -40,6 +40,7 @@ export function Navbar() {
   const cartActive =
     pathname === "/cart" || pathname.startsWith("/cart/");
   const cartHighlighted = cartDrawerOpen || cartActive;
+  const signInActive = pathname === "/sign-in";
 
   return (
     <>
@@ -90,6 +91,18 @@ export function Navbar() {
             >
               <CartIconWithBadge count={totalQuantity} />
             </button>
+            <Link
+              href="/sign-in"
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+                signInActive
+                  ? "text-stone-900"
+                  : "text-stone-500 hover:text-stone-900"
+              }`}
+              aria-label="Sign in"
+              onClick={() => setMenuOpen(false)}
+            >
+              <LogIn className="h-5 w-5" strokeWidth={1.5} aria-hidden />
+            </Link>
           </nav>
 
           <button
@@ -168,7 +181,7 @@ export function Navbar() {
               })}
               <button
                 type="button"
-                className={`flex w-full items-center py-3 text-left text-sm ${
+                className={`flex w-full items-center gap-3 py-3 text-left text-sm ${
                   cartHighlighted
                     ? "text-stone-900"
                     : "text-stone-500 hover:text-stone-900"
@@ -182,7 +195,20 @@ export function Navbar() {
                 }}
               >
                 <CartIconWithBadge count={totalQuantity} />
+                <span>Cart</span>
               </button>
+              <Link
+                href="/sign-in"
+                className={`flex items-center gap-3 py-3 text-sm ${
+                  signInActive
+                    ? "text-stone-900"
+                    : "text-stone-500 hover:text-stone-900"
+                }`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <LogIn className="h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden />
+                Sign in
+              </Link>
             </nav>
           </Container>
         </div>
