@@ -1,13 +1,15 @@
 "use client";
 
-import { LogIn, ShoppingCart } from "lucide-react";
+import { onAuthStateChanged } from "firebase/auth";
+import { CircleUserRound, LogIn, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { CartDrawer } from "@/components/cart";
 import { Container } from "@/components/ui";
 import { useCart } from "@/context/CartContext";
+import { auth } from "@/lib/firebase/firebase";
 
 const mainLinks = [
   { href: "/", label: "Home" },
@@ -30,6 +32,10 @@ function CartIconWithBadge({ count }: { count: number }) {
 export function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
   const {
     totalQuantity,
     cartDrawerOpen,
@@ -41,6 +47,43 @@ export function Navbar() {
     pathname === "/cart" || pathname.startsWith("/cart/");
   const cartHighlighted = cartDrawerOpen || cartActive;
   const signInActive = pathname === "/sign-in";
+  const isLoggedIn = Boolean(userEmail);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUserName(user?.displayName ?? null);
+      setUserEmail(user?.email ?? null);
+      if (!user) {
+        setProfileOpen(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    setProfileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!profileRef.current) {
+        return;
+      }
+      if (!profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    setProfileOpen(false);
+    setMenuOpen(false);
+  };
 
   return (
     <>
@@ -91,18 +134,55 @@ export function Navbar() {
             >
               <CartIconWithBadge count={totalQuantity} />
             </button>
-            <Link
-              href="/sign-in"
-              className={`inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
-                signInActive
-                  ? "text-stone-900"
-                  : "text-stone-500 hover:text-stone-900"
-              }`}
-              aria-label="Sign in"
-              onClick={() => setMenuOpen(false)}
-            >
-              <LogIn className="h-5 w-5" strokeWidth={1.5} aria-hidden />
-            </Link>
+            <div className="relative" ref={profileRef}>
+              <button
+                type="button"
+                className={`inline-flex h-10 max-w-[12rem] items-center gap-2 rounded-md px-3 transition-colors ${
+                  profileOpen
+                    ? "text-stone-900"
+                    : "text-stone-500 hover:text-stone-900"
+                }`}
+                aria-label="Profile"
+                aria-expanded={profileOpen}
+                onClick={() => setProfileOpen((open) => !open)}
+              >
+                <CircleUserRound className="h-5 w-5" strokeWidth={1.5} aria-hidden />
+                {isLoggedIn ? (
+                  <span className="max-w-[8rem] truncate text-sm">
+                    {userName || "Profile"}
+                  </span>
+                ) : null}
+              </button>
+              {profileOpen ? (
+                <div className="absolute right-0 top-12 w-64 rounded-md border border-stone-200 bg-white p-3 shadow-md">
+                  {isLoggedIn ? (
+                    <>
+                      <p className="truncate text-sm font-semibold text-stone-900">
+                        {userName || "User"}
+                      </p>
+                      <p className="mt-1 truncate text-xs text-stone-500">
+                        {userEmail || "-"}
+                      </p>
+                      <button
+                        type="button"
+                        className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      href="/sign-in"
+                      className="block w-full rounded-md border border-stone-300 px-3 py-2 text-center text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50"
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      Sign in
+                    </Link>
+                  )}
+                </div>
+              ) : null}
+            </div>
           </nav>
 
           <button
@@ -197,18 +277,43 @@ export function Navbar() {
                 <CartIconWithBadge count={totalQuantity} />
                 <span>Cart</span>
               </button>
-              <Link
-                href="/sign-in"
-                className={`flex items-center gap-3 py-3 text-sm ${
-                  signInActive
-                    ? "text-stone-900"
-                    : "text-stone-500 hover:text-stone-900"
-                }`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <LogIn className="h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden />
-                Sign in
-              </Link>
+              {isLoggedIn ? (
+                <div className="py-3">
+                  <div className="flex items-start gap-3 text-sm text-stone-900">
+                    <CircleUserRound
+                      className="mt-0.5 h-5 w-5 shrink-0"
+                      strokeWidth={1.5}
+                      aria-hidden
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{userName || "User"}</p>
+                      <p className="truncate text-xs text-stone-500">
+                        {userEmail || "-"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className={`flex items-center gap-3 py-3 text-sm ${
+                    signInActive
+                      ? "text-stone-900"
+                      : "text-stone-500 hover:text-stone-900"
+                  }`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <LogIn className="h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden />
+                  Sign in
+                </Link>
+              )}
             </nav>
           </Container>
         </div>

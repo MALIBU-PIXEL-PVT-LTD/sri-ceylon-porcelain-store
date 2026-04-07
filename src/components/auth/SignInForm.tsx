@@ -1,3 +1,19 @@
+"use client";
+
+import {
+  createUserWithEmailAndPassword,
+  fetchSignInMethodsForEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+} from "firebase/auth";
+import { FirebaseError } from "firebase/app";
+import { Eye, EyeOff } from "lucide-react";
+import { type FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { auth, googleProvider } from "@/lib/firebase/firebase";
+import { ErrorMassage } from "@/components/ui";
+
 function GoogleIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden>
@@ -21,23 +37,102 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
-function GitHubIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-    </svg>
-  );
-}
-
 export function SignInForm() {
+  const router = useRouter();
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const getFriendlyAuthError = (
+    error: unknown,
+    fallback: string,
+  ): string => {
+    if (!(error instanceof FirebaseError)) {
+      return fallback;
+    }
+
+    switch (error.code) {
+      case "auth/email-already-in-use":
+        return "This email is already registered. Please sign in with your password.";
+      case "auth/invalid-credential":
+      case "auth/wrong-password":
+        return "Incorrect email or password.";
+      case "auth/user-not-found":
+        return "No account found for this email.";
+      case "auth/invalid-email":
+        return "Please enter a valid email address.";
+      case "auth/weak-password":
+        return "Password must be at least 6 characters.";
+      case "auth/popup-closed-by-user":
+        return "Google sign-in was closed before completion.";
+      case "auth/popup-blocked":
+        return "Popup was blocked by the browser. Please allow popups and try again.";
+      case "auth/network-request-failed":
+        return "Network issue detected. Check your internet and try again.";
+      default:
+        return fallback;
+    }
+  };
+
+  const handleEmailSignIn = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      setEmailLoading(true);
+      setEmailError(null);
+      setGoogleError(null);
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (methods.length === 0) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      router.push("/");
+    } catch (error) {
+      const message = getFriendlyAuthError(
+        error,
+        "Sign in failed. Please try again.",
+      );
+      setEmailError(message);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setGoogleLoading(true);
+      setGoogleError(null);
+      setEmailError(null);
+      await signInWithPopup(auth, googleProvider);
+      router.push("/");
+    } catch (error) {
+      const message = getFriendlyAuthError(
+        error,
+        "Google sign in failed. Please try again.",
+      );
+      setGoogleError(message);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md">
-      <h1 className="text-center text-3xl font-semibold tracking-tight text-stone-900">
+      <p className="text-center text-sm font-medium uppercase tracking-[0.24em] text-stone-900 sm:text-base">
+        Sri Ceylon Porcelain
+      </p>
+      <h1 className="mt-2 text-center text-sm font-medium tracking-normal text-stone-600">
         Sign in to your account
       </h1>
 
       <div className="mt-8 rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-        <form className="space-y-5" action="#" method="post">
+        <form className="space-y-5" onSubmit={handleEmailSignIn}>
         <div>
           <label
             htmlFor="sign-in-email"
@@ -62,14 +157,28 @@ export function SignInForm() {
           >
             Password
           </label>
-          <input
-            id="sign-in-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            className="mt-2 w-full rounded-md border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
-          />
+          <div className="relative mt-2">
+            <input
+              id="sign-in-password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              className="w-full rounded-md border border-stone-200 bg-white px-3.5 py-2.5 pr-10 text-sm text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 inline-flex items-center pr-3 text-stone-500 transition-colors hover:text-stone-800"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" aria-hidden />
+              ) : (
+                <Eye className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -91,10 +200,12 @@ export function SignInForm() {
 
         <button
           type="submit"
+          disabled={emailLoading}
           className="flex h-11 w-full items-center justify-center rounded-md bg-stone-900 text-sm font-semibold text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
         >
-          Sign in
+          {emailLoading ? "Signing in..." : "Sign in"}
         </button>
+        {emailError ? <ErrorMassage title="Sign in failed" message={emailError} /> : null}
         </form>
 
         <div className="relative mt-8">
@@ -108,23 +219,34 @@ export function SignInForm() {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-6">
           <button
             type="button"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-semibold text-stone-800 transition-colors hover:border-stone-300 hover:bg-stone-50"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading}
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-semibold text-stone-800 transition-colors hover:border-stone-300 hover:bg-stone-50"
           >
             <GoogleIcon className="size-5 shrink-0" />
-            Google
+            {googleLoading ? "Signing in..." : "Continue with Google"}
           </button>
-          <button
-            type="button"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-semibold text-stone-800 transition-colors hover:border-stone-300 hover:bg-stone-50"
-          >
-            <GitHubIcon className="size-5 shrink-0 text-stone-900" />
-            GitHub
-          </button>
+          {googleError ? (
+            <div className="mt-3">
+              <ErrorMassage title="Google sign-in failed" message={googleError} />
+            </div>
+          ) : null}
         </div>
       </div>
+      {googleLoading ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/35 p-4">
+          <div className="w-full max-w-sm rounded-lg border border-stone-200 bg-white p-6 text-center shadow-lg">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
+            <p className="text-sm font-medium text-stone-900">
+              Logging in with Google...
+            </p>
+            <p className="mt-1 text-xs text-stone-500">Please wait</p>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
