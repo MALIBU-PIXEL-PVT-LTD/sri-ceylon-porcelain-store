@@ -1,31 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 
 import { CartItem, CartSummary } from "@/components/cart";
 import { Button } from "@/components/ui";
-import { mockCartLines } from "@/lib/mock-cart";
-import type { CartLine } from "@/types/cart";
+import { useCart } from "@/context/CartContext";
 
 export default function CartPage() {
-  const [lines, setLines] = useState<CartLine[]>(mockCartLines);
-
-  function updateQuantity(id: string, delta: number) {
-    setLines((prev) =>
-      prev
-        .map((line) =>
-          line.id === id
-            ? { ...line, quantity: Math.max(0, line.quantity + delta) }
-            : line
-        )
-        .filter((line) => line.quantity > 0)
-    );
-  }
-
-  function removeLine(id: string) {
-    setLines((prev) => prev.filter((line) => line.id !== id));
-  }
+  const { lines, updateQuantity, removeLine } = useCart();
 
   if (lines.length === 0) {
     return (
@@ -61,7 +43,7 @@ export default function CartPage() {
       </div>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-3 lg:gap-12">
-        <div className="border-t border-stone-200/90 lg:col-span-2">
+        <div className="flex flex-col gap-4 lg:col-span-2">
           {lines.map((line) => (
             <CartItem
               key={line.id}

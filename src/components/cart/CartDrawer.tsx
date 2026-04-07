@@ -6,7 +6,7 @@ import { useCallback, useEffect } from "react";
 
 import { CartItem } from "@/components/cart/CartItem";
 import { Button } from "@/components/ui";
-import { mockCartLines } from "@/lib/mock-cart";
+import { useCart } from "@/context/CartContext";
 
 const motionEasing = "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]";
 
@@ -15,13 +15,9 @@ type CartDrawerProps = {
   onClose: () => void;
 };
 
-function cartTotal(lines: typeof mockCartLines) {
-  return lines.reduce((sum, line) => sum + line.price * line.quantity, 0);
-}
-
 export function CartDrawer({ open, onClose }: CartDrawerProps) {
   const router = useRouter();
-  const total = cartTotal(mockCartLines);
+  const { lines, totalPrice, updateQuantity } = useCart();
 
   const handleCheckout = useCallback(() => {
     onClose();
@@ -67,7 +63,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
       >
-        <header className="flex shrink-0 items-center justify-between border-b border-stone-200/80 bg-white/90 px-6 py-5 backdrop-blur-sm">
+        <header className="flex shrink-0 items-center justify-between border-b border-stone-200/80 bg-white/90 px-6 py-5 sm:px-7 backdrop-blur-sm">
           <h2
             id="cart-drawer-title"
             className="text-[0.65rem] font-medium uppercase tracking-[0.28em] text-stone-500"
@@ -84,20 +80,28 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
           </button>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-6">
-          <div className="flex flex-col">
-            {mockCartLines.map((line) => (
-              <CartItem
-                key={line.id}
-                line={line}
-                onProductNavigate={onClose}
-                className="border-stone-100/90 bg-white/60 py-5 first:rounded-t-sm last:rounded-b-sm last:border-b-0 sm:py-6"
-              />
-            ))}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7 sm:py-6">
+          <div className="flex flex-col divide-y divide-stone-200/90 rounded-xl border border-stone-200/70 bg-white p-4 shadow-sm sm:p-5">
+            {lines.length === 0 ? (
+              <p className="py-8 text-center text-sm text-stone-500">
+                Your cart is empty.
+              </p>
+            ) : (
+              lines.map((line) => (
+                <CartItem
+                  key={line.id}
+                  line={line}
+                  embedded
+                  onProductNavigate={onClose}
+                  onIncrement={() => updateQuantity(line.id, 1)}
+                  onDecrement={() => updateQuantity(line.id, -1)}
+                />
+              ))
+            )}
           </div>
         </div>
 
-        <footer className="sticky bottom-0 z-10 shrink-0 border-t border-stone-200/80 bg-white/95 px-6 py-6 shadow-[0_-8px_32px_-8px_rgba(28,25,23,0.08)] backdrop-blur-sm">
+        <footer className="shrink-0 border-t border-stone-200/80 bg-white/95 px-6 py-6 shadow-[0_-8px_32px_-8px_rgba(28,25,23,0.08)] backdrop-blur-sm sm:px-7">
           <div className="space-y-1">
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.22em] text-stone-400">
               Total
@@ -106,7 +110,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
               <span className="mr-1.5 align-baseline text-xs font-medium uppercase tracking-[0.2em] text-stone-400">
                 Rs
               </span>
-              {total.toLocaleString()}
+              {totalPrice.toLocaleString()}
             </p>
           </div>
 
