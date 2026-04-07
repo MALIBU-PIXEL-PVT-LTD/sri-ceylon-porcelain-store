@@ -1,4 +1,5 @@
 import { StockBadge } from "@/components/ui";
+import { getSkuForProductSize } from "@/lib/sku";
 import type { Product } from "@/types/product";
 
 type ProductInfoProps = {
@@ -7,27 +8,12 @@ type ProductInfoProps = {
   className?: string;
 };
 
-const skuByProductAndSize: Record<string, Record<string, string>> = {
-  "classic-porcelain-plate": {
-    '8"': "CLAPORPLAWHI08-001",
-    '10"': "CLAPORPLAWHI10-002",
-    '12"': "CLAPORPLAWHI12-003",
-  },
-  "premium-porcelain-cup": {
-    "200ml": "PREPORCUPBLA200-004",
-    "250ml": "PREPORCUPWHI250-005",
-    "300ml": "PREPORCUPYEL300-006",
-  },
-};
-
 export function ProductInfo({
   product,
   selectedSize,
   className = "",
 }: ProductInfoProps) {
-  const sku = selectedSize
-    ? skuByProductAndSize[product.slug]?.[selectedSize]
-    : undefined;
+  const sku = getSkuForProductSize(product.slug, selectedSize);
 
   return (
     <div className={className}>
@@ -36,7 +22,7 @@ export function ProductInfo({
       </h1>
       {sku && (
         <p className="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-stone-500">
-          SKU: {sku}
+          {sku}
         </p>
       )}
 

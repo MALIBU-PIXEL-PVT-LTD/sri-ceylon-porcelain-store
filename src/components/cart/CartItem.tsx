@@ -2,6 +2,7 @@ import { Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { getSkuForProductSize } from "@/lib/sku";
 import type { CartLine } from "@/types/cart";
 
 type CartItemProps = {
@@ -26,6 +27,7 @@ export function CartItem({
   className = "",
 }: CartItemProps) {
   const lineTotal = line.price * line.quantity;
+  const sku = getSkuForProductSize(line.slug, line.size);
 
   const shellClass = embedded
     ? "flex items-start gap-4 border-0 bg-transparent py-6 first:pt-2 last:pb-2 sm:gap-5 sm:py-7"
@@ -62,6 +64,11 @@ export function CartItem({
                 Size
               </span>{" "}
               <span className="text-stone-700">{line.size}</span>
+            </p>
+          )}
+          {sku && (
+            <p className="text-[0.75rem] font-medium uppercase tracking-[0.12em] text-stone-500">
+              {sku}
             </p>
           )}
         </div>
