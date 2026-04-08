@@ -9,6 +9,7 @@ const schema = buildSchema(`
     phone: String
     department: String!
     role: String!
+    isDisabled: Boolean!
     createdAt: String!
   }
 
@@ -57,6 +58,8 @@ const schema = buildSchema(`
       employeeId: String!
       password: String!
     ): AuthPayload!
+    setStaffAccountDisabled(id: ID!, disabled: Boolean!): Staff!
+    deleteStaffAccount(id: ID!): Boolean!
 
     syncCustomerAuthUser(idToken: String!): CustomerAuthUser!
     setCustomerAccountDisabled(firebaseUid: String!, disabled: Boolean!): CustomerAuthUser!

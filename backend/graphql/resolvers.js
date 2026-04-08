@@ -13,6 +13,7 @@ const mapStaff = (row) => ({
   phone: row.phone,
   department: row.department,
   role: row.role,
+  isDisabled: row.is_disabled,
   createdAt: row.created_at.toISOString(),
 });
 
@@ -24,6 +25,13 @@ const getNextStaffNumber = async (pool) => {
   `;
   const result = await pool.query(query);
   return Number(result.rows[0].max_id) + 1;
+};
+
+const ensureStaffTableColumns = async (pool) => {
+  await pool.query(`
+    ALTER TABLE staff_registrations
+    ADD COLUMN IF NOT EXISTS is_disabled BOOLEAN NOT NULL DEFAULT FALSE
+  `);
 };
 
 const ensureCustomerAuthTable = async (pool) => {
@@ -39,6 +47,47 @@ const ensureCustomerAuthTable = async (pool) => {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+};
+
+const reconcileCustomerAuthUsers = async (pool, firebaseAuth) => {
+  await ensureCustomerAuthTable(pool);
+
+  let pageToken;
+  const firebaseUsers = [];
+
+  do {
+    const page = await firebaseAuth.listUsers(1000, pageToken);
+    firebaseUsers.push(...page.users);
+    pageToken = page.pageToken;
+  } while (pageToken);
+
+  const firebaseUidSet = new Set(firebaseUsers.map((user) => user.uid));
+
+  for (const user of firebaseUsers) {
+    const provider = user.providerData?.[0]?.providerId || "password";
+    await pool.query(
+      `INSERT INTO customer_auth_users (
+         firebase_uid, email, display_name, provider, is_disabled, created_at, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+       ON CONFLICT (firebase_uid)
+       DO UPDATE SET
+         email = EXCLUDED.email,
+         display_name = EXCLUDED.display_name,
+         provider = EXCLUDED.provider,
+         is_disabled = EXCLUDED.is_disabled,
+         updated_at = NOW()`,
+      [user.uid, user.email || "", user.displayName || null, provider, !!user.disabled]
+    );
+  }
+
+  const dbUsers = await pool.query("SELECT firebase_uid FROM customer_auth_users");
+  const staleUids = dbUsers.rows
+    .map((row) => row.firebase_uid)
+    .filter((uid) => !firebaseUidSet.has(uid));
+
+  if (staleUids.length > 0) {
+    await pool.query("DELETE FROM customer_auth_users WHERE firebase_uid = ANY($1::text[])", [staleUids]);
+  }
 };
 
 const mapCustomerAuthUser = (row) => ({
@@ -68,11 +117,12 @@ const createResolvers = (pool) => ({
     return `E${pad3(nextNumber)}`;
   },
   me: async (_args, context) => {
+    await ensureStaffTableColumns(pool);
     if (!context?.token) return null;
     try {
       const decoded = verifyToken(context.token);
       const result = await pool.query(
-        `SELECT id, employee_id, full_name, email, phone, department, role, created_at
+        `SELECT id, employee_id, full_name, email, phone, department, role, is_disabled, created_at
          FROM staff_registrations
          WHERE id = $1`,
         [decoded.sub]
@@ -84,8 +134,9 @@ const createResolvers = (pool) => ({
     }
   },
   staffUsers: async () => {
+    await ensureStaffTableColumns(pool);
     const result = await pool.query(
-      `SELECT id, employee_id, full_name, email, phone, department, role, created_at
+      `SELECT id, employee_id, full_name, email, phone, department, role, is_disabled, created_at
        FROM staff_registrations
        ORDER BY id DESC`
     );
@@ -93,6 +144,8 @@ const createResolvers = (pool) => ({
   },
   customerAuthUsers: async () => {
     await ensureCustomerAuthTable(pool);
+    const firebaseAuth = getFirebaseAuth();
+    await reconcileCustomerAuthUsers(pool, firebaseAuth);
     const result = await pool.query(
       `SELECT id, firebase_uid, email, display_name, provider, is_disabled, created_at, updated_at
        FROM customer_auth_users
@@ -101,6 +154,7 @@ const createResolvers = (pool) => ({
     return result.rows.map(mapCustomerAuthUser);
   },
   registerStaff: async ({ fullName, email, phone, department, role }) => {
+    await ensureStaffTableColumns(pool);
     const nextNumber = await getNextStaffNumber(pool);
     const employeeId = `EMP${pad3(nextNumber)}`;
     const tempPassword = `E${pad3(nextNumber)}`;
@@ -114,10 +168,11 @@ const createResolvers = (pool) => ({
         email,
         phone,
         department,
-        role
+        role,
+        is_disabled
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, employee_id, full_name, email, phone, department, role, created_at
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, employee_id, full_name, email, phone, department, role, is_disabled, created_at
     `;
 
     const result = await pool.query(insertQuery, [
@@ -128,6 +183,7 @@ const createResolvers = (pool) => ({
       phone ?? null,
       department,
       role,
+      false,
     ]);
 
     return {
@@ -136,8 +192,9 @@ const createResolvers = (pool) => ({
     };
   },
   loginStaff: async ({ employeeId, password }) => {
+    await ensureStaffTableColumns(pool);
     const result = await pool.query(
-      `SELECT id, employee_id, password_hash, full_name, email, phone, department, role, created_at
+      `SELECT id, employee_id, password_hash, full_name, email, phone, department, role, is_disabled, created_at
        FROM staff_registrations
        WHERE employee_id = $1`,
       [employeeId]
@@ -146,6 +203,9 @@ const createResolvers = (pool) => ({
     const staff = result.rows[0];
     if (!staff) {
       throw new GraphQLError("Invalid credentials");
+    }
+    if (staff.is_disabled) {
+      throw new GraphQLError("Account is disabled");
     }
 
     const isValid = await bcrypt.compare(password, staff.password_hash);
@@ -157,6 +217,24 @@ const createResolvers = (pool) => ({
       token: signToken(staff),
       staff: mapStaff(staff),
     };
+  },
+  setStaffAccountDisabled: async ({ id, disabled }) => {
+    await ensureStaffTableColumns(pool);
+    const result = await pool.query(
+      `UPDATE staff_registrations
+       SET is_disabled = $2
+       WHERE id = $1
+       RETURNING id, employee_id, full_name, email, phone, department, role, is_disabled, created_at`,
+      [id, disabled]
+    );
+    if (!result.rows[0]) {
+      throw new GraphQLError("Staff user not found");
+    }
+    return mapStaff(result.rows[0]);
+  },
+  deleteStaffAccount: async ({ id }) => {
+    const result = await pool.query("DELETE FROM staff_registrations WHERE id = $1", [id]);
+    return (result.rowCount || 0) > 0;
   },
   syncCustomerAuthUser: async ({ idToken }) => {
     await ensureCustomerAuthTable(pool);
