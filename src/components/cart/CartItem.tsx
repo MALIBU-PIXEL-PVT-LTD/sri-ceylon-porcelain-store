@@ -58,12 +58,25 @@ export function CartItem({
           >
             {line.name}
           </Link>
-          {line.size && (
+          {(line.size || line.color) && (
             <p className="text-[0.8125rem] leading-relaxed text-stone-500">
-              <span className="text-[0.625rem] font-medium uppercase tracking-[0.18em] text-stone-400">
-                Size
-              </span>{" "}
-              <span className="text-stone-700">{line.size}</span>
+              {line.color && (
+                <>
+                  <span className="text-[0.625rem] font-medium uppercase tracking-[0.18em] text-stone-400">
+                    Color
+                  </span>{" "}
+                  <span className="text-stone-700">{line.color}</span>
+                  {line.size ? " · " : null}
+                </>
+              )}
+              {line.size && (
+                <>
+                  <span className="text-[0.625rem] font-medium uppercase tracking-[0.18em] text-stone-400">
+                    Size
+                  </span>{" "}
+                  <span className="text-stone-700">{line.size}</span>
+                </>
+              )}
             </p>
           )}
           {sku && (
