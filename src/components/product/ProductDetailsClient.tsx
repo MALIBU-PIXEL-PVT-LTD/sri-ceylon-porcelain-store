@@ -12,7 +12,11 @@ type ProductDetailsClientProps = {
 
 export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
   const sizes = product.sizes ?? [];
+  const colors = product.colors ?? [];
   const [selectedSize, setSelectedSize] = useState<string | undefined>(sizes[0]);
+  const [selectedColorId, setSelectedColorId] = useState<string | undefined>(
+    colors[0]?.id
+  );
 
   return (
     <div>
@@ -21,6 +25,8 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
         product={product}
         selectedSize={selectedSize}
         onSelectedSizeChange={setSelectedSize}
+        selectedColorId={selectedColorId}
+        onSelectedColorChange={setSelectedColorId}
       />
     </div>
   );

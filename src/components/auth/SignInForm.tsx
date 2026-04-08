@@ -39,6 +39,7 @@ function GoogleIcon({ className }: { className?: string }) {
 
 export function SignInForm() {
   const router = useRouter();
+  const backendUrl = process.env.NEXT_PUBLIC_STORE_BACKEND_URL;
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -76,6 +77,46 @@ export function SignInForm() {
     }
   };
 
+  const syncCustomerToBackend = async (idToken: string) => {
+    const endpoints = [
+      backendUrl,
+      "https://portal.sriceylonporcelain.com/api/graphql",
+      "http://localhost:7300/graphql",
+    ].filter(Boolean) as string[];
+
+    let lastError = "Unable to sync account profile";
+
+    for (const endpoint of endpoints) {
+      try {
+        const syncResponse = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: `
+              mutation SyncCustomerAuthUser($idToken: String!) {
+                syncCustomerAuthUser(idToken: $idToken) {
+                  firebaseUid
+                }
+              }
+            `,
+            variables: { idToken },
+          }),
+        });
+
+        const syncPayload = await syncResponse.json();
+        if (syncResponse.ok && !syncPayload?.errors?.length) {
+          return;
+        }
+
+        lastError = syncPayload?.errors?.[0]?.message || `Sync failed at ${endpoint}`;
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : `Sync failed at ${endpoint}`;
+      }
+    }
+
+    throw new Error(lastError);
+  };
+
   const handleEmailSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -87,17 +128,20 @@ export function SignInForm() {
       setEmailError(null);
       setGoogleError(null);
       const methods = await fetchSignInMethodsForEmail(auth, email);
+      let credential;
       if (methods.length === 0) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        credential = await createUserWithEmailAndPassword(auth, email, password);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        credential = await signInWithEmailAndPassword(auth, email, password);
       }
+      const idToken = await credential.user.getIdToken();
+      await syncCustomerToBackend(idToken);
       router.push("/");
     } catch (error) {
-      const message = getFriendlyAuthError(
-        error,
-        "Sign in failed. Please try again.",
-      );
+      const message =
+        error instanceof Error
+          ? error.message
+          : getFriendlyAuthError(error, "Sign in failed. Please try again.");
       setEmailError(message);
     } finally {
       setEmailLoading(false);
@@ -109,13 +153,15 @@ export function SignInForm() {
       setGoogleLoading(true);
       setGoogleError(null);
       setEmailError(null);
-      await signInWithPopup(auth, googleProvider);
+      const credential = await signInWithPopup(auth, googleProvider);
+      const idToken = await credential.user.getIdToken();
+      await syncCustomerToBackend(idToken);
       router.push("/");
     } catch (error) {
-      const message = getFriendlyAuthError(
-        error,
-        "Google sign in failed. Please try again.",
-      );
+      const message =
+        error instanceof Error
+          ? error.message
+          : getFriendlyAuthError(error, "Google sign in failed. Please try again.");
       setGoogleError(message);
     } finally {
       setGoogleLoading(false);

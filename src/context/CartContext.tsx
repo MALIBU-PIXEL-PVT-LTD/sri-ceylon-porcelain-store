@@ -12,22 +12,24 @@ import {
 import type { CartLine } from "@/types/cart";
 import type { Product } from "@/types/product";
 
-function lineId(product: Product, size?: string) {
-  if (product.sizes?.length && size) {
-    return `${product.id}__${size}`;
-  }
-  return product.id;
+function lineId(product: Product, size?: string, colorId?: string) {
+  const parts: string[] = [product.id];
+  if (product.sizes?.length && size) parts.push(size);
+  if (product.colors?.length && colorId) parts.push(colorId);
+  return parts.join("__");
 }
 
-function productToLine(product: Product, size?: string): CartLine {
+function productToLine(product: Product, size?: string, colorId?: string): CartLine {
+  const colorLabel = product.colors?.find((c) => c.id === colorId)?.label;
   return {
-    id: lineId(product, size),
+    id: lineId(product, size, colorId),
     slug: product.slug,
     name: product.name,
     image: product.images[0] ?? "/placeholder.jpg",
     price: product.price,
     quantity: 1,
     size: product.sizes?.length ? size : undefined,
+    color: colorLabel,
   };
 }
 
@@ -38,7 +40,7 @@ type CartContextValue = {
   cartDrawerOpen: boolean;
   openCartDrawer: () => void;
   closeCartDrawer: () => void;
-  addItem: (product: Product, size?: string) => void;
+  addItem: (product: Product, size?: string, colorId?: string) => void;
   updateQuantity: (lineId: string, delta: number) => void;
   removeLine: (lineId: string) => void;
 };
@@ -52,10 +54,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const openCartDrawer = useCallback(() => setCartDrawerOpen(true), []);
   const closeCartDrawer = useCallback(() => setCartDrawerOpen(false), []);
 
-  const addItem = useCallback((product: Product, size?: string) => {
+  const addItem = useCallback((product: Product, size?: string, colorId?: string) => {
     if (!product.inStock) return;
+    if (product.sizes?.length && !size) return;
+    if (product.colors?.length && !colorId) return;
 
-    const id = lineId(product, size);
+    const id = lineId(product, size, colorId);
     setLines((prev) => {
       const i = prev.findIndex((l) => l.id === id);
       if (i >= 0) {
@@ -63,7 +67,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         next[i] = { ...next[i], quantity: next[i].quantity + 1 };
         return next;
       }
-      return [...prev, productToLine(product, size)];
+      return [...prev, productToLine(product, size, colorId)];
     });
     setCartDrawerOpen(true);
   }, []);

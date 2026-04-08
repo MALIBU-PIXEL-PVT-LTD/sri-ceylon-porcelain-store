@@ -14,6 +14,7 @@ export const mockProducts: Product[] = [
       "/products/classic-porcelain-plate-2.jpg",
     ],
     sizes: ['8"', '10"', '12"'],
+    colors: [{ id: "white", label: "White", hex: "#fafaf9" }],
     inStock: true,
   },
   {
@@ -29,6 +30,11 @@ export const mockProducts: Product[] = [
       "/products/premium-porcelain-cup-2.jpg",
     ],
     sizes: ['200ml', '250ml', '300ml'],
+    colors: [
+      { id: "black", label: "Black", hex: "#1c1917", linkedSize: "200ml" },
+      { id: "white", label: "White", hex: "#fafaf9", linkedSize: "250ml" },
+      { id: "yellow", label: "Yellow", hex: "#eab308", linkedSize: "300ml" },
+    ],
     inStock: true,
   },
   {
