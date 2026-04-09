@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 import { CartItem, CartSummary } from "@/components/cart";
-import { Button } from "@/components/ui";
 import { useCart } from "@/context/CartContext";
 
 export default function CartPage() {
@@ -58,9 +57,12 @@ export default function CartPage() {
         <div className="lg:col-span-1">
           <div className="sticky top-24 space-y-6 self-start">
             <CartSummary lines={lines} />
-            <Button className="w-full" type="button">
+            <Link
+              href="/checkout"
+              className="inline-flex w-full items-center justify-center rounded-sm bg-stone-900 px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
+            >
               Checkout
-            </Button>
+            </Link>
           </div>
         </div>
       </div>
