@@ -18,4 +18,8 @@ export interface Product {
     sizes?: string[]
     colors?: ProductColor[]
     inStock: boolean
+    /** On-hand quantity from inventory (when loaded from API). */
+    availableQuantity?: number
+    /** Primary SKU when sourced from inventory. */
+    sku?: string
 }

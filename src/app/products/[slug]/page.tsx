@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductDetailsClient, ProductGallery } from "@/components/product";
-import { mockProducts } from "@/lib/mock-products";
+import { fetchPublicProductBySlug, publicProductToProduct } from "@/lib/products-api";
+
+export const revalidate = 60;
 
 export default async function ProductPage({
   params,
@@ -11,7 +13,30 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
 
-  const product = mockProducts.find((p) => p.slug === slug);
+  let product = null;
+  let loadFailed = false;
+  try {
+    const row = await fetchPublicProductBySlug(slug);
+    if (row) product = publicProductToProduct(row);
+  } catch {
+    loadFailed = true;
+  }
+
+  if (loadFailed) {
+    return (
+      <div>
+        <p className="text-sm text-red-700" role="alert">
+          We could not load this product. Please try again later.
+        </p>
+        <Link
+          href="/products"
+          className="mt-4 inline-block text-sm text-stone-600 underline hover:text-stone-900"
+        >
+          Back to collection
+        </Link>
+      </div>
+    );
+  }
 
   if (!product) return notFound();
 

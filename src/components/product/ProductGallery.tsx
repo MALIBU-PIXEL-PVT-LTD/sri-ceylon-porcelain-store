@@ -18,6 +18,7 @@ export function ProductGallery({
     images.length > 0 ? images : ["/placeholder.jpg"];
   const [active, setActive] = useState(0);
   const mainSrc = safeImages[Math.min(active, safeImages.length - 1)];
+  const mainRemote = mainSrc.startsWith("http://") || mainSrc.startsWith("https://");
 
   return (
     <div className={className}>
@@ -27,6 +28,7 @@ export function ProductGallery({
           alt={alt}
           fill
           priority
+          unoptimized={mainRemote}
           sizes="(max-width: 1024px) 100vw, 50vw"
           className="object-cover object-center"
         />
@@ -40,6 +42,7 @@ export function ProductGallery({
         >
           {safeImages.map((src, index) => {
             const isActive = index === active;
+            const thumbRemote = src.startsWith("http://") || src.startsWith("https://");
             return (
               <li key={`${src}-${index}`} className="shrink-0">
                 <button
@@ -57,6 +60,7 @@ export function ProductGallery({
                     src={src}
                     alt=""
                     fill
+                    unoptimized={thumbRemote}
                     sizes="80px"
                     className="object-cover object-center"
                   />

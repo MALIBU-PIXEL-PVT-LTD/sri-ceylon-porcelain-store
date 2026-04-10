@@ -101,6 +101,92 @@ const mapCustomerAuthUser = (row) => ({
   updatedAt: row.updated_at.toISOString(),
 });
 
+const ensureInventoryTable = async (pool) => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS inventory_items (
+      id BIGSERIAL PRIMARY KEY,
+      sku VARCHAR(100) NOT NULL UNIQUE,
+      slug VARCHAR(200) NOT NULL UNIQUE,
+      product_name VARCHAR(255) NOT NULL,
+      short_description TEXT NOT NULL,
+      long_description TEXT NOT NULL,
+      color VARCHAR(100) NOT NULL,
+      size VARCHAR(200) NOT NULL,
+      quantity INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+      price NUMERIC(12, 2) NOT NULL CHECK (price >= 0),
+      image_urls TEXT[] NOT NULL DEFAULT '{}',
+      created_by_employee_id VARCHAR(50) NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_inventory_items_created_by
+    ON inventory_items (created_by_employee_id)
+  `);
+};
+
+function slugifySkuPart(raw) {
+  const s = String(raw || "item")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return s || "item";
+}
+
+async function uniqueInventorySlug(pool, baseSlug) {
+  let slug = baseSlug;
+  let n = 0;
+  for (;;) {
+    const check = await pool.query("SELECT 1 FROM inventory_items WHERE slug = $1 LIMIT 1", [slug]);
+    if (check.rowCount === 0) return slug;
+    n += 1;
+    slug = `${baseSlug}-${n}`;
+  }
+}
+
+const mapInventoryItem = (row) => ({
+  id: String(row.id),
+  sku: row.sku,
+  slug: row.slug,
+  productName: row.product_name,
+  shortDescription: row.short_description,
+  longDescription: row.long_description,
+  color: row.color,
+  size: row.size,
+  quantity: row.quantity,
+  price: Number(row.price),
+  imageUrls: row.image_urls || [],
+  createdByEmployeeId: row.created_by_employee_id,
+  createdAt: row.created_at.toISOString(),
+  updatedAt: row.updated_at.toISOString(),
+});
+
+const mapPublicProduct = (row) => ({
+  id: String(row.id),
+  slug: row.slug,
+  name: row.product_name,
+  shortDescription: row.short_description,
+  description: row.long_description,
+  price: Number(row.price),
+  images: row.image_urls?.length ? row.image_urls : [],
+  quantity: row.quantity,
+  color: row.color,
+  size: row.size,
+  sku: row.sku,
+});
+
+const requireStaffToken = (context) => {
+  if (!context?.token) {
+    throw new GraphQLError("Unauthorized");
+  }
+  try {
+    return verifyToken(context.token);
+  } catch {
+    throw new GraphQLError("Unauthorized");
+  }
+};
+
 const createResolvers = (pool) => ({
   health: "ok",
   message: "Sri GraphQL backend is running",
@@ -152,6 +238,25 @@ const createResolvers = (pool) => ({
        ORDER BY id DESC`
     );
     return result.rows.map(mapCustomerAuthUser);
+  },
+  inventoryItems: async (_args, context) => {
+    requireStaffToken(context);
+    await ensureInventoryTable(pool);
+    const result = await pool.query(
+      `SELECT * FROM inventory_items ORDER BY created_at DESC, id DESC`
+    );
+    return result.rows.map(mapInventoryItem);
+  },
+  publicProducts: async () => {
+    await ensureInventoryTable(pool);
+    const result = await pool.query(`SELECT * FROM inventory_items ORDER BY id DESC`);
+    return result.rows.map(mapPublicProduct);
+  },
+  publicProductBySlug: async ({ slug }) => {
+    await ensureInventoryTable(pool);
+    const result = await pool.query(`SELECT * FROM inventory_items WHERE slug = $1`, [slug]);
+    if (!result.rows[0]) return null;
+    return mapPublicProduct(result.rows[0]);
   },
   registerStaff: async ({ fullName, email, phone, department, role }) => {
     await ensureStaffTableColumns(pool);
@@ -299,6 +404,109 @@ const createResolvers = (pool) => ({
     await firebaseAuth.deleteUser(firebaseUid);
     await pool.query("DELETE FROM customer_auth_users WHERE firebase_uid = $1", [firebaseUid]);
     return true;
+  },
+  createInventoryItem: async (
+    {
+      sku,
+      productName,
+      shortDescription,
+      longDescription,
+      color,
+      size,
+      quantity,
+      price,
+      imageUrls,
+    },
+    context
+  ) => {
+    const decoded = requireStaffToken(context);
+    await ensureInventoryTable(pool);
+    const baseSlug = slugifySkuPart(sku);
+    const slug = await uniqueInventorySlug(pool, baseSlug);
+    try {
+      const result = await pool.query(
+        `INSERT INTO inventory_items (
+          sku, slug, product_name, short_description, long_description,
+          color, size, quantity, price, image_urls, created_by_employee_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING *`,
+        [
+          sku.trim(),
+          slug,
+          productName,
+          shortDescription,
+          longDescription,
+          color,
+          size,
+          quantity,
+          price,
+          imageUrls || [],
+          decoded.employeeId,
+        ]
+      );
+      return mapInventoryItem(result.rows[0]);
+    } catch (e) {
+      if (e.code === "23505") {
+        throw new GraphQLError("SKU already exists");
+      }
+      throw e;
+    }
+  },
+  updateInventoryItem: async (
+    {
+      id,
+      sku,
+      productName,
+      shortDescription,
+      longDescription,
+      color,
+      size,
+      quantity,
+      price,
+      imageUrls,
+    },
+    context
+  ) => {
+    requireStaffToken(context);
+    await ensureInventoryTable(pool);
+    try {
+      const result = await pool.query(
+        `UPDATE inventory_items
+         SET sku = $2,
+             product_name = $3,
+             short_description = $4,
+             long_description = $5,
+             color = $6,
+             size = $7,
+             quantity = $8,
+             price = $9,
+             image_urls = $10,
+             updated_at = NOW()
+         WHERE id = $1
+         RETURNING *`,
+        [
+          id,
+          sku.trim(),
+          productName,
+          shortDescription,
+          longDescription,
+          color,
+          size,
+          quantity,
+          price,
+          imageUrls || [],
+        ]
+      );
+      if (!result.rows[0]) {
+        throw new GraphQLError("Inventory item not found");
+      }
+      return mapInventoryItem(result.rows[0]);
+    } catch (e) {
+      if (e.code === "23505") {
+        throw new GraphQLError("SKU already exists");
+      }
+      throw e;
+    }
   },
 });
 

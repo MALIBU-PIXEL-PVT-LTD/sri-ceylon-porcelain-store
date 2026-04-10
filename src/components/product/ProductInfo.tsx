@@ -13,7 +13,7 @@ export function ProductInfo({
   selectedSize,
   className = "",
 }: ProductInfoProps) {
-  const sku = getSkuForProductSize(product.slug, selectedSize);
+  const sku = product.sku ?? getSkuForProductSize(product.slug, selectedSize);
 
   return (
     <div className={className}>
@@ -23,6 +23,14 @@ export function ProductInfo({
       {sku && (
         <p className="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-stone-500">
           {sku}
+        </p>
+      )}
+      {product.availableQuantity !== undefined && (
+        <p className="mt-2 text-sm text-stone-600">
+          Available quantity:{" "}
+          <span className="font-medium tabular-nums text-stone-900">
+            {product.availableQuantity}
+          </span>
         </p>
       )}
 

@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { ProductCard } from "@/components/product";
-import { mockProducts } from "@/lib/mock-products";
+import { fetchPublicProducts, publicProductToProduct } from "@/lib/products-api";
 
-const featured = mockProducts.filter((p) => p.inStock).slice(0, 3);
+export const revalidate = 60;
 
 const categories = [
   {
@@ -20,7 +20,20 @@ const categories = [
   },
 ] as const;
 
-export default function Home() {
+export default async function Home() {
+  let loadError: string | null = null;
+  let featured = [] as ReturnType<typeof publicProductToProduct>[];
+
+  try {
+    const api = await fetchPublicProducts();
+    featured = api
+      .map(publicProductToProduct)
+      .filter((p) => p.inStock)
+      .slice(0, 3);
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "Could not load featured products";
+  }
+
   return (
     <div className="space-y-24 pb-8 sm:space-y-28 sm:pb-12">
       <section className="border-b border-stone-200/80 pb-16 sm:pb-20">
@@ -76,6 +89,16 @@ export default function Home() {
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
+        {loadError ? (
+          <p className="mt-6 text-sm text-red-700" role="alert">
+            {loadError}
+          </p>
+        ) : null}
+        {!loadError && featured.length === 0 ? (
+          <p className="mt-6 text-sm text-stone-500">
+            No featured products yet. Add in-stock items from inventory.
+          </p>
+        ) : null}
       </section>
 
       <section aria-labelledby="categories-heading">
