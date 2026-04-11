@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { schema } = require("./schema");
 const { createResolvers } = require("./resolvers");
 const { readBearerToken } = require("./auth");

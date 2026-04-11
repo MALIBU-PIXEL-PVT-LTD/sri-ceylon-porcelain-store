@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { buildSchema } = require("graphql");
 
 const schema = buildSchema(`
@@ -122,6 +123,7 @@ const schema = buildSchema(`
       price: Float!
       imageUrls: [String!]!
     ): InventoryItem!
+    deleteInventoryItem(id: ID!): Boolean!
   }
 `);
 

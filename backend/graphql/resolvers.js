@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const bcrypt = require("bcryptjs");
 const { GraphQLError } = require("graphql");
 const { signToken, verifyToken } = require("./auth");
@@ -215,7 +216,7 @@ const createResolvers = (pool) => ({
       );
       if (!result.rows[0]) return null;
       return mapStaff(result.rows[0]);
-    } catch (_error) {
+    } catch {
       return null;
     }
   },
@@ -507,6 +508,12 @@ const createResolvers = (pool) => ({
       }
       throw e;
     }
+  },
+  deleteInventoryItem: async ({ id }, context) => {
+    requireStaffToken(context);
+    await ensureInventoryTable(pool);
+    const result = await pool.query("DELETE FROM inventory_items WHERE id = $1", [id]);
+    return (result.rowCount || 0) > 0;
   },
 });
 

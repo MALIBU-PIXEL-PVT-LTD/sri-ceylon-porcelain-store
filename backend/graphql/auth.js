@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const jwt = require("jsonwebtoken");
 
 const jwtSecret = process.env.JWT_SECRET || "change-this-jwt-secret";
