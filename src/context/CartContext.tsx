@@ -4,6 +4,8 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -11,6 +13,46 @@ import {
 
 import type { CartLine } from "@/types/cart";
 import type { Product } from "@/types/product";
+
+const CART_STORAGE_KEY = "sri-ceylon-porcelain-cart-v1";
+
+function parseStoredLines(raw: string | null): CartLine[] {
+  if (!raw) return [];
+  try {
+    const data = JSON.parse(raw) as unknown;
+    if (!Array.isArray(data)) return [];
+    return data.filter(isCartLine);
+  } catch {
+    return [];
+  }
+}
+
+function isCartLine(x: unknown): x is CartLine {
+  if (x === null || typeof x !== "object") return false;
+  const o = x as Record<string, unknown>;
+  return (
+    typeof o.id === "string" &&
+    typeof o.slug === "string" &&
+    typeof o.name === "string" &&
+    typeof o.image === "string" &&
+    typeof o.price === "number" &&
+    typeof o.quantity === "number" &&
+    (o.size === undefined || typeof o.size === "string") &&
+    (o.color === undefined || typeof o.color === "string")
+  );
+}
+
+function persistLines(lines: CartLine[]) {
+  try {
+    if (lines.length === 0) {
+      localStorage.removeItem(CART_STORAGE_KEY);
+    } else {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(lines));
+    }
+  } catch {
+    /* quota / private mode */
+  }
+}
 
 function lineId(product: Product, size?: string, colorId?: string) {
   const parts: string[] = [product.id];
@@ -43,6 +85,7 @@ type CartContextValue = {
   addItem: (product: Product, size?: string, colorId?: string) => void;
   updateQuantity: (lineId: string, delta: number) => void;
   removeLine: (lineId: string) => void;
+  clearCart: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -50,6 +93,18 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    setLines(parseStoredLines(localStorage.getItem(CART_STORAGE_KEY)));
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    persistLines(lines);
+  }, [lines, hydrated]);
 
   const openCartDrawer = useCallback(() => setCartDrawerOpen(true), []);
   const closeCartDrawer = useCallback(() => setCartDrawerOpen(false), []);
@@ -88,6 +143,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLines((prev) => prev.filter((line) => line.id !== lineId));
   }, []);
 
+  const clearCart = useCallback(() => {
+    setLines([]);
+    try {
+      localStorage.removeItem(CART_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const totalQuantity = useMemo(
     () => lines.reduce((s, l) => s + l.quantity, 0),
     [lines]
@@ -109,6 +173,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addItem,
       updateQuantity,
       removeLine,
+      clearCart,
     }),
     [
       lines,
@@ -120,6 +185,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addItem,
       updateQuantity,
       removeLine,
+      clearCart,
     ]
   );
 

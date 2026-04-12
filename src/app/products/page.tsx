@@ -1,15 +1,15 @@
 import { ProductCard, ProductGrid } from "@/components/product";
-import { fetchPublicProducts, publicProductToProduct } from "@/lib/products-api";
+import { fetchPublicProductGroups, publicProductGroupToListProduct } from "@/lib/products-api";
 
 export const revalidate = 60;
 
 export default async function ProductsPage() {
   let loadError: string | null = null;
-  let products: ReturnType<typeof publicProductToProduct>[] = [];
+  let products: ReturnType<typeof publicProductGroupToListProduct>[] = [];
 
   try {
-    const api = await fetchPublicProducts();
-    products = api.map(publicProductToProduct);
+    const api = await fetchPublicProductGroups();
+    products = api.map(publicProductGroupToListProduct);
   } catch (error) {
     loadError = error instanceof Error ? error.message : "Could not load products";
   }

@@ -2,12 +2,18 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui";
+import { Button, uiRound } from "@/components/ui";
 import { useCart } from "@/context/CartContext";
 import type { Product } from "@/types/product";
 
 type ProductPurchaseFormProps = {
   product: Product;
+  /** When set, add-to-cart uses this product (e.g. resolved variant in a group). */
+  cartProduct?: Product;
+  /** Override swatch list (grouped PDP). */
+  colorOptions?: Product["colors"];
+  /** Override size list (grouped PDP). */
+  sizeOptions?: string[];
   selectedSize?: string;
   onSelectedSizeChange?: (size: string) => void;
   selectedColorId?: string;
@@ -16,14 +22,18 @@ type ProductPurchaseFormProps = {
 
 export function ProductPurchaseForm({
   product,
+  cartProduct,
+  colorOptions,
+  sizeOptions,
   selectedSize,
   onSelectedSizeChange,
   selectedColorId,
   onSelectedColorChange,
 }: ProductPurchaseFormProps) {
   const { addItem } = useCart();
-  const sizes = product.sizes ?? [];
-  const colors = product.colors ?? [];
+  const sizes = sizeOptions ?? product.sizes ?? [];
+  const colors = colorOptions ?? product.colors ?? [];
+  const lineProduct = cartProduct ?? product;
 
   const [internalSelectedSize, setInternalSelectedSize] = useState<string | undefined>(
     sizes[0]
@@ -59,9 +69,17 @@ export function ProductPurchaseForm({
   }
 
   function handleAddToCart() {
-    if (!product.inStock) return;
+    if (!lineProduct.inStock) return;
     if (sizes.length > 0 && !activeSize) return;
     if (colors.length > 0 && !activeColorId) return;
+    if (cartProduct) {
+      addItem(
+        cartProduct,
+        cartProduct.sizes?.[0],
+        cartProduct.colors?.[0]?.id
+      );
+      return;
+    }
     addItem(
       product,
       sizes.length > 0 ? activeSize : undefined,
@@ -70,7 +88,7 @@ export function ProductPurchaseForm({
   }
 
   const canSubmit =
-    product.inStock &&
+    lineProduct.inStock &&
     (sizes.length === 0 || !!activeSize) &&
     (colors.length === 0 || !!activeColorId);
 
@@ -96,7 +114,7 @@ export function ProductPurchaseForm({
                   aria-label={c.label}
                   aria-pressed={selected}
                   className={[
-                    "h-8 w-8 shrink-0 rounded-full border border-stone-300/90 shadow-[inset_0_1px_2px_rgba(28,25,23,0.06)] transition-[box-shadow,ring-color] outline-none focus-visible:ring-2 focus-visible:ring-stone-400 focus-visible:ring-offset-2",
+                    `h-8 w-8 shrink-0 border border-stone-300/90 shadow-[inset_0_1px_2px_rgba(28,25,23,0.06)] transition-[box-shadow,ring-color] outline-none focus-visible:ring-2 focus-visible:ring-stone-400 focus-visible:ring-offset-2 ${uiRound}`,
                     selected
                       ? "ring-2 ring-stone-900 ring-offset-2 ring-offset-white"
                       : "hover:ring-1 hover:ring-stone-300 hover:ring-offset-2 hover:ring-offset-white",
@@ -125,7 +143,7 @@ export function ProductPurchaseForm({
             {sizes.map((size) => (
               <label
                 key={size}
-                className="relative flex cursor-pointer items-center justify-center rounded-sm border border-stone-200 bg-white p-3 transition-colors has-[:checked]:border-stone-900 has-[:checked]:bg-stone-900"
+                className={`relative flex cursor-pointer items-center justify-center border border-stone-200 bg-white p-3 transition-colors has-[:checked]:border-stone-900 has-[:checked]:bg-stone-900 ${uiRound}`}
               >
                 <input
                   type="radio"

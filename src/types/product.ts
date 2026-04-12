@@ -22,4 +22,6 @@ export interface Product {
     availableQuantity?: number
     /** Primary SKU when sourced from inventory. */
     sku?: string
+    /** When set, listing shows a price range (e.g. grouped variants). */
+    priceRangeMax?: number
 }

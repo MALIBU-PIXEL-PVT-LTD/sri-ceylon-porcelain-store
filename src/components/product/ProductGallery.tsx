@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type ProductGalleryProps = {
   images: string[];
@@ -17,6 +17,11 @@ export function ProductGallery({
   const safeImages =
     images.length > 0 ? images : ["/placeholder.jpg"];
   const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    setActive(0);
+  }, [images]);
+
   const mainSrc = safeImages[Math.min(active, safeImages.length - 1)];
   const mainRemote = mainSrc.startsWith("http://") || mainSrc.startsWith("https://");
 

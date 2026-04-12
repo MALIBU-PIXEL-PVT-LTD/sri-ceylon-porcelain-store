@@ -125,9 +125,11 @@ const ensureInventoryTable = async (pool) => {
     CREATE INDEX IF NOT EXISTS idx_inventory_items_created_by
     ON inventory_items (created_by_employee_id)
   `);
+
+  await runInventorySlugMigrationOnce(pool);
 };
 
-function slugifySkuPart(raw) {
+function slugifyPart(raw) {
   const s = String(raw || "item")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -135,14 +137,66 @@ function slugifySkuPart(raw) {
   return s || "item";
 }
 
-async function uniqueInventorySlug(pool, baseSlug) {
+async function uniqueInventorySlug(pool, baseSlug, excludeId = null) {
   let slug = baseSlug;
   let n = 0;
   for (;;) {
-    const check = await pool.query("SELECT 1 FROM inventory_items WHERE slug = $1 LIMIT 1", [slug]);
+    const check =
+      excludeId == null
+        ? await pool.query("SELECT 1 FROM inventory_items WHERE slug = $1 LIMIT 1", [slug])
+        : await pool.query(
+            "SELECT 1 FROM inventory_items WHERE slug = $1 AND id <> $2 LIMIT 1",
+            [slug, excludeId]
+          );
     if (check.rowCount === 0) return slug;
     n += 1;
     slug = `${baseSlug}-${n}`;
+  }
+}
+
+/** True if slug is already the name-based slug (optional numeric suffix for uniqueness). */
+function slugAlreadyMatchesProductName(slug, productName) {
+  const base = slugifyPart(productName);
+  if (slug === base) return true;
+  const prefix = `${base}-`;
+  if (!String(slug).startsWith(prefix)) return false;
+  const suffix = String(slug).slice(prefix.length);
+  return /^\d+$/.test(suffix);
+}
+
+/** Persists slug derived from product_name when it still looks legacy (e.g. SKU-shaped). */
+async function ensureSlugMatchesProductName(pool, row) {
+  if (slugAlreadyMatchesProductName(row.slug, row.product_name)) return row;
+  const newSlug = await uniqueInventorySlug(pool, slugifyPart(row.product_name), row.id);
+  if (newSlug === row.slug) return row;
+  await pool.query("UPDATE inventory_items SET slug = $1 WHERE id = $2", [newSlug, row.id]);
+  return { ...row, slug: newSlug };
+}
+
+let inventorySlugMigrationDone = false;
+
+async function migrateSlugsFromProductNames(pool) {
+  const { rows } = await pool.query(
+    "SELECT id, product_name, slug FROM inventory_items ORDER BY id ASC"
+  );
+  for (const row of rows) {
+    const base = slugifyPart(row.product_name);
+    const newSlug = await uniqueInventorySlug(pool, base, row.id);
+    if (newSlug !== row.slug) {
+      await pool.query("UPDATE inventory_items SET slug = $1 WHERE id = $2", [newSlug, row.id]);
+    }
+  }
+}
+
+async function runInventorySlugMigrationOnce(pool) {
+  if (inventorySlugMigrationDone) return;
+  await pool.query("SELECT pg_advisory_lock(884291031)");
+  try {
+    if (inventorySlugMigrationDone) return;
+    await migrateSlugsFromProductNames(pool);
+    inventorySlugMigrationDone = true;
+  } finally {
+    await pool.query("SELECT pg_advisory_unlock(884291031)");
   }
 }
 
@@ -176,6 +230,73 @@ const mapPublicProduct = (row) => ({
   size: row.size,
   sku: row.sku,
 });
+
+const mapPublicVariantRow = (row) => ({
+  id: String(row.id),
+  slug: row.slug,
+  sku: row.sku,
+  shortDescription: row.short_description,
+  description: row.long_description,
+  price: Number(row.price),
+  images: row.image_urls?.length ? row.image_urls : [],
+  quantity: row.quantity,
+  color: row.color,
+  size: row.size,
+});
+
+function groupKeyProductName(name) {
+  return String(name || "").trim();
+}
+
+function compareSizeStrings(a, b) {
+  const sa = String(a || "");
+  const sb = String(b || "");
+  const na = parseFloat(sa.replace(/[^0-9.]/g, ""));
+  const nb = parseFloat(sb.replace(/[^0-9.]/g, ""));
+  if (!Number.isNaN(na) && !Number.isNaN(nb) && na !== nb) return na - nb;
+  return sa.localeCompare(sb, undefined, { numeric: true });
+}
+
+function sortVariantRows(rows) {
+  return [...rows].sort((a, b) => {
+    const c = String(a.color || "").localeCompare(String(b.color || ""));
+    if (c !== 0) return c;
+    return compareSizeStrings(a.size, b.size);
+  });
+}
+
+function buildProductGroupsFromRows(rows) {
+  const byName = new Map();
+  for (const row of rows) {
+    const key = groupKeyProductName(row.product_name);
+    if (!byName.has(key)) byName.set(key, []);
+    byName.get(key).push(row);
+  }
+  const groups = [];
+  for (const groupRows of byName.values()) {
+    const sorted = sortVariantRows(groupRows);
+    const first = sorted[0];
+    groups.push({
+      groupSlug: slugifyPart(first.product_name),
+      name: first.product_name,
+      shortDescription: first.short_description,
+      description: first.long_description,
+      variants: sorted.map(mapPublicVariantRow),
+    });
+  }
+  groups.sort((a, b) => a.name.localeCompare(b.name));
+  return groups;
+}
+
+async function loadSyncedInventoryRows(pool) {
+  await ensureInventoryTable(pool);
+  const result = await pool.query(`SELECT * FROM inventory_items ORDER BY id ASC`);
+  const rows = [];
+  for (const row of result.rows) {
+    rows.push(await ensureSlugMatchesProductName(pool, row));
+  }
+  return rows;
+}
 
 const requireStaffToken = (context) => {
   if (!context?.token) {
@@ -249,15 +370,37 @@ const createResolvers = (pool) => ({
     return result.rows.map(mapInventoryItem);
   },
   publicProducts: async () => {
-    await ensureInventoryTable(pool);
-    const result = await pool.query(`SELECT * FROM inventory_items ORDER BY id DESC`);
-    return result.rows.map(mapPublicProduct);
+    const rows = await loadSyncedInventoryRows(pool);
+    return rows.map(mapPublicProduct);
   },
   publicProductBySlug: async ({ slug }) => {
-    await ensureInventoryTable(pool);
-    const result = await pool.query(`SELECT * FROM inventory_items WHERE slug = $1`, [slug]);
-    if (!result.rows[0]) return null;
-    return mapPublicProduct(result.rows[0]);
+    const rows = await loadSyncedInventoryRows(pool);
+    const q = String(slug || "").trim();
+    const row = rows.find(
+      (r) => r.slug === q || String(r.sku).trim().toLowerCase() === q.toLowerCase()
+    );
+    if (!row) return null;
+    return mapPublicProduct(row);
+  },
+  publicProductGroups: async () => {
+    const rows = await loadSyncedInventoryRows(pool);
+    return buildProductGroupsFromRows(rows);
+  },
+  publicProductGroupBySlug: async ({ slug }) => {
+    const rows = await loadSyncedInventoryRows(pool);
+    const groups = buildProductGroupsFromRows(rows);
+    const normalized = String(slug || "").trim();
+    const byGroupSlug = groups.find((g) => g.groupSlug === normalized);
+    if (byGroupSlug) return byGroupSlug;
+    return (
+      groups.find((g) =>
+        g.variants.some(
+          (v) =>
+            v.slug === normalized ||
+            String(v.sku).trim().toLowerCase() === normalized.toLowerCase()
+        )
+      ) || null
+    );
   },
   registerStaff: async ({ fullName, email, phone, department, role }) => {
     await ensureStaffTableColumns(pool);
@@ -422,7 +565,7 @@ const createResolvers = (pool) => ({
   ) => {
     const decoded = requireStaffToken(context);
     await ensureInventoryTable(pool);
-    const baseSlug = slugifySkuPart(sku);
+    const baseSlug = slugifyPart(productName);
     const slug = await uniqueInventorySlug(pool, baseSlug);
     try {
       const result = await pool.query(
@@ -470,10 +613,13 @@ const createResolvers = (pool) => ({
   ) => {
     requireStaffToken(context);
     await ensureInventoryTable(pool);
+    const baseSlug = slugifyPart(productName);
+    const newSlug = await uniqueInventorySlug(pool, baseSlug, id);
     try {
       const result = await pool.query(
         `UPDATE inventory_items
          SET sku = $2,
+             slug = $11,
              product_name = $3,
              short_description = $4,
              long_description = $5,
@@ -496,6 +642,7 @@ const createResolvers = (pool) => ({
           quantity,
           price,
           imageUrls || [],
+          newSlug,
         ]
       );
       if (!result.rows[0]) {

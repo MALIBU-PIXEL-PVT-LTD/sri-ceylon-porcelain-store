@@ -1,7 +1,8 @@
 import type { InputHTMLAttributes } from "react";
 
-const inputClassName =
-  "mt-1.5 w-full rounded-sm border border-stone-200 bg-white px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-1 focus:ring-stone-900";
+import { inputFieldClassName } from "@/components/ui";
+
+const inputClassName = `mt-1.5 ${inputFieldClassName}`;
 
 export type CheckoutFormFieldProps = {
   id: string;

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
-import { ProductDetailsClient, ProductGallery } from "@/components/product";
-import { fetchPublicProductBySlug, publicProductToProduct } from "@/lib/products-api";
+import { ProductGroupDetailClient } from "@/components/product";
+import { SetProductBreadcrumbTitle } from "@/context/ProductBreadcrumbContext";
+import { fetchPublicProductGroupBySlug } from "@/lib/products-api";
 
 export const revalidate = 60;
 
@@ -13,11 +14,10 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
 
-  let product = null;
+  let group = null;
   let loadFailed = false;
   try {
-    const row = await fetchPublicProductBySlug(slug);
-    if (row) product = publicProductToProduct(row);
+    group = await fetchPublicProductGroupBySlug(slug);
   } catch {
     loadFailed = true;
   }
@@ -38,27 +38,17 @@ export default async function ProductPage({
     );
   }
 
-  if (!product) return notFound();
+  if (!group) return notFound();
+
+  if (group.groupSlug !== slug) {
+    redirect(`/products/${group.groupSlug}`);
+  }
 
   return (
     <div>
-      <nav aria-label="Back to collection">
-        <Link
-          href="/products"
-          className="inline-flex items-center text-sm text-stone-500 transition-colors hover:text-stone-900"
-        >
-          <span className="mr-2" aria-hidden>
-            ←
-          </span>
-          Back to Collection
-        </Link>
-      </nav>
+      <SetProductBreadcrumbTitle title={group.name} />
 
-      <article className="mt-8 grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16">
-        <ProductGallery images={product.images} alt={product.name} />
-
-        <ProductDetailsClient product={product} />
-      </article>
+      <ProductGroupDetailClient group={group} />
     </div>
   );
 }

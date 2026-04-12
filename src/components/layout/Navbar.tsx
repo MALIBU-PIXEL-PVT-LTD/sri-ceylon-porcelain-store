@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CartDrawer } from "@/components/cart";
-import { Container } from "@/components/ui";
+import { Container, uiRound } from "@/components/ui";
 import { useCart } from "@/context/CartContext";
 import { auth } from "@/lib/firebase/firebase";
 
@@ -21,7 +21,7 @@ function CartIconWithBadge({ count }: { count: number }) {
     <span className="relative inline-flex shrink-0">
       <ShoppingCart className="h-5 w-5" strokeWidth={1.5} aria-hidden />
       {count > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-0.5 text-[10px] font-semibold tabular-nums leading-none text-white">
+        <span className={`absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center bg-red-600 px-0.5 text-[10px] font-semibold tabular-nums leading-none text-white ${uiRound}`}>
           {count > 99 ? "99+" : count}
         </span>
       )}
@@ -97,32 +97,38 @@ export function Navbar() {
             Sri Ceylon Porcelain
           </Link>
 
-          <nav
-            className="hidden items-center gap-10 md:flex"
-            aria-label="Main"
-          >
-            {mainLinks.map(({ href, label }) => {
-              const active =
-                href === "/"
-                  ? pathname === "/"
-                  : pathname === href || pathname.startsWith(`${href}/`);
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`text-sm transition-colors ${
-                    active
-                      ? "text-stone-900"
-                      : "text-stone-500 hover:text-stone-900"
-                  }`}
-                >
-                  {label}
-                </Link>
-              );
-            })}
+          <div className="hidden items-center gap-8 md:flex">
+            <nav
+              className="flex h-16 items-end"
+              aria-label="Main"
+            >
+              <div className="flex gap-8 border-b border-stone-200/90">
+                {mainLinks.map(({ href, label }) => {
+                  const active =
+                    href === "/"
+                      ? pathname === "/"
+                      : pathname === href || pathname.startsWith(`${href}/`);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      className={[
+                        "-mb-px inline-flex items-center border-b-2 px-1 pb-3 pt-1 text-sm font-medium transition-colors",
+                        active
+                          ? "border-stone-900 text-stone-900"
+                          : "border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-800",
+                      ].join(" ")}
+                    >
+                      {label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
             <button
               type="button"
-              className={`relative -mr-1 inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors ${
+              className={`-mr-1 inline-flex h-10 w-10 items-center justify-center ${uiRound} transition-colors ${
                 cartHighlighted
                   ? "text-stone-900"
                   : "text-stone-500 hover:text-stone-900"
@@ -137,7 +143,7 @@ export function Navbar() {
             <div className="relative" ref={profileRef}>
               <button
                 type="button"
-                className={`inline-flex h-10 max-w-[12rem] items-center gap-2 rounded-md px-3 transition-colors ${
+                className={`inline-flex h-10 max-w-[12rem] items-center gap-2 px-3 transition-colors ${uiRound} ${
                   profileOpen
                     ? "text-stone-900"
                     : "text-stone-500 hover:text-stone-900"
@@ -154,7 +160,7 @@ export function Navbar() {
                 ) : null}
               </button>
               {profileOpen ? (
-                <div className="absolute right-0 top-12 w-64 rounded-md border border-stone-200 bg-white p-3 shadow-md">
+                <div className={`absolute right-0 top-12 w-64 border border-stone-200 bg-white p-3 shadow-md ${uiRound}`}>
                   {isLoggedIn ? (
                     <>
                       <p className="truncate text-sm font-semibold text-stone-900">
@@ -165,7 +171,7 @@ export function Navbar() {
                       </p>
                       <button
                         type="button"
-                        className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50"
+                        className={`mt-3 w-full border border-stone-300 px-3 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50 ${uiRound}`}
                         onClick={handleLogout}
                       >
                         Logout
@@ -174,7 +180,7 @@ export function Navbar() {
                   ) : (
                     <Link
                       href="/sign-in"
-                      className="block w-full rounded-md border border-stone-300 px-3 py-2 text-center text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50"
+                      className={`block w-full border border-stone-300 px-3 py-2 text-center text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50 ${uiRound}`}
                       onClick={() => setProfileOpen(false)}
                     >
                       Sign in
@@ -183,11 +189,11 @@ export function Navbar() {
                 </div>
               ) : null}
             </div>
-          </nav>
+          </div>
 
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-stone-200 text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50 md:hidden"
+            className={`inline-flex h-10 w-10 items-center justify-center border border-stone-200 text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50 md:hidden ${uiRound}`}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -236,7 +242,7 @@ export function Navbar() {
         >
           <Container className="py-4">
             <nav
-              className="flex flex-col divide-y divide-stone-100"
+              className="flex flex-col border-b border-stone-200/90"
               aria-label="Mobile"
             >
               {mainLinks.map(({ href, label }) => {
@@ -248,11 +254,13 @@ export function Navbar() {
                   <Link
                     key={href}
                     href={href}
-                    className={`block py-3 text-sm ${
+                    aria-current={active ? "page" : undefined}
+                    className={[
+                      "-mb-px border-b-2 py-3 text-sm font-medium transition-colors first:pt-0",
                       active
-                        ? "text-stone-900"
-                        : "text-stone-500 hover:text-stone-900"
-                    }`}
+                        ? "border-stone-900 text-stone-900"
+                        : "border-transparent text-stone-500 hover:border-stone-200 hover:text-stone-800",
+                    ].join(" ")}
                     onClick={() => setMenuOpen(false)}
                   >
                     {label}
@@ -261,7 +269,7 @@ export function Navbar() {
               })}
               <button
                 type="button"
-                className={`flex w-full items-center gap-3 py-3 text-left text-sm ${
+                className={`mt-1 flex w-full items-center gap-3 border-t border-stone-100 py-3 pt-4 text-left text-sm font-medium ${
                   cartHighlighted
                     ? "text-stone-900"
                     : "text-stone-500 hover:text-stone-900"
@@ -294,7 +302,7 @@ export function Navbar() {
                   </div>
                   <button
                     type="button"
-                    className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50"
+                    className={`mt-3 w-full border border-stone-300 px-3 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50 ${uiRound}`}
                     onClick={handleLogout}
                   >
                     Logout

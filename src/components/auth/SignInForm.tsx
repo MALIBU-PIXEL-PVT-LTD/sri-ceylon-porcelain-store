@@ -12,7 +12,7 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { auth, googleProvider } from "@/lib/firebase/firebase";
-import { ErrorMassage } from "@/components/ui";
+import { ErrorMassage, inputFieldClassName, uiRound } from "@/components/ui";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -177,7 +177,7 @@ export function SignInForm() {
         Sign in to your account
       </h1>
 
-      <div className="mt-8 rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className={`mt-8 border border-stone-200 bg-white p-6 shadow-sm sm:p-8 ${uiRound}`}>
         <form className="space-y-5" onSubmit={handleEmailSignIn}>
         <div>
           <label
@@ -192,7 +192,7 @@ export function SignInForm() {
             type="email"
             autoComplete="email"
             required
-            className="mt-2 w-full rounded-md border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+            className={`mt-2 ${inputFieldClassName}`}
           />
         </div>
 
@@ -210,7 +210,7 @@ export function SignInForm() {
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               required
-              className="w-full rounded-md border border-stone-200 bg-white px-3.5 py-2.5 pr-10 text-sm text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-stone-400 focus:ring-2 focus:ring-stone-200"
+              className={`${inputFieldClassName} pr-10`}
             />
             <button
               type="button"
@@ -232,7 +232,7 @@ export function SignInForm() {
             <input
               name="remember"
               type="checkbox"
-              className="size-4 rounded border-stone-300 text-stone-900 focus:ring-stone-400"
+              className={`size-4 border-stone-300 text-stone-900 focus:ring-stone-400 ${uiRound} border`}
             />
             Remember me
           </label>
@@ -247,7 +247,7 @@ export function SignInForm() {
         <button
           type="submit"
           disabled={emailLoading}
-          className="flex h-11 w-full items-center justify-center rounded-md bg-stone-900 text-sm font-semibold text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
+          className={`flex h-11 w-full items-center justify-center bg-stone-900 text-sm font-semibold text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400 ${uiRound}`}
         >
           {emailLoading ? "Signing in..." : "Sign in"}
         </button>
@@ -270,7 +270,7 @@ export function SignInForm() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={googleLoading}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-stone-200 bg-white px-4 text-sm font-semibold text-stone-800 transition-colors hover:border-stone-300 hover:bg-stone-50"
+            className={`inline-flex h-11 w-full items-center justify-center gap-2 border border-stone-200 bg-white px-4 text-sm font-semibold text-stone-800 transition-colors hover:border-stone-300 hover:bg-stone-50 ${uiRound}`}
           >
             <GoogleIcon className="size-5 shrink-0" />
             {googleLoading ? "Signing in..." : "Continue with Google"}
@@ -284,7 +284,7 @@ export function SignInForm() {
       </div>
       {googleLoading ? (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/35 p-4">
-          <div className="w-full max-w-sm rounded-lg border border-stone-200 bg-white p-6 text-center shadow-lg">
+          <div className={`w-full max-w-sm border border-stone-200 bg-white p-6 text-center shadow-lg ${uiRound}`}>
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
             <p className="text-sm font-medium text-stone-900">
               Logging in with Google...

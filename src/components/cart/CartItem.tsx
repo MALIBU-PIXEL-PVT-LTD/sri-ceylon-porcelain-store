@@ -2,6 +2,7 @@ import { Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { uiRound } from "@/components/ui";
 import { getSkuForProductSize } from "@/lib/sku";
 import type { CartLine } from "@/types/cart";
 
@@ -34,13 +35,13 @@ export function CartItem({
 
   const shellClass = embedded
     ? "flex items-start gap-4 border-0 bg-transparent py-6 first:pt-2 last:pb-2 sm:gap-5 sm:py-7"
-    : "mb-4 flex items-start gap-4 rounded-2xl border border-stone-200/70 bg-white p-4 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_8px_24px_-8px_rgba(28,25,23,0.08)] last:mb-0 sm:gap-5 sm:p-5";
+    : `mb-4 flex items-start gap-4 border border-stone-200/70 bg-white p-4 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_8px_24px_-8px_rgba(28,25,23,0.08)] last:mb-0 sm:gap-5 sm:p-5 ${uiRound}`;
 
   return (
     <article className={`${shellClass} ${className}`.trim()}>
       <Link
         href={`/products/${line.slug}`}
-        className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-stone-100 shadow-[inset_0_1px_2px_rgba(28,25,23,0.06)] ring-1 ring-stone-200/60"
+        className={`relative h-16 w-16 shrink-0 overflow-hidden bg-stone-100 shadow-[inset_0_1px_2px_rgba(28,25,23,0.06)] ring-1 ring-stone-200/60 ${uiRound}`}
         onClick={onProductNavigate}
       >
         <Image
@@ -130,7 +131,7 @@ export function CartItem({
                 Quantity
               </p>
               <div
-                className="inline-flex h-9 items-stretch overflow-hidden rounded-full border border-stone-200/90 bg-white shadow-sm"
+                className={`inline-flex h-9 items-stretch overflow-hidden border border-stone-200/90 bg-white shadow-sm ${uiRound}`}
                 role="group"
                 aria-label="Quantity"
               >
@@ -164,7 +165,7 @@ export function CartItem({
           className={
             embedded || readOnly
               ? "flex min-w-0 items-center justify-between gap-3 border-t border-stone-100/90 pt-5 sm:gap-4"
-              : "flex min-w-0 items-center justify-between gap-3 rounded-xl border border-stone-100/80 bg-gradient-to-b from-stone-50/80 to-stone-50/40 px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] sm:gap-4"
+              : `flex min-w-0 items-center justify-between gap-3 border border-stone-100/80 bg-gradient-to-b from-stone-50/80 to-stone-50/40 px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] sm:gap-4 ${uiRound}`
           }
         >
           <span className="min-w-0 shrink text-[0.8125rem] font-medium text-stone-500">

@@ -5,11 +5,19 @@ import type { Product } from "@/types/product";
 
 type ProductCardProps = {
   product: Product;
+  /** Override next/image `sizes` when the card sits in a different grid (e.g. 4 columns at `lg`). */
+  imageSizes?: string;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+const defaultImageSizes =
+  "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
+
+export function ProductCard({ product, imageSizes = defaultImageSizes }: ProductCardProps) {
   const src = product.images[0] ?? "/placeholder.jpg";
   const remote = src.startsWith("http://") || src.startsWith("https://");
+  const max = product.priceRangeMax;
+  const showFrom =
+    max != null && Number.isFinite(max) && max > product.price;
 
   return (
     <Link
@@ -23,7 +31,7 @@ export function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             fill
             unoptimized={remote}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            sizes={imageSizes}
             className="object-cover object-center transition duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035]"
           />
         </div>
@@ -35,12 +43,23 @@ export function ProductCard({ product }: ProductCardProps) {
           <p className="text-sm leading-relaxed text-stone-500">
             {product.shortDescription}
           </p>
-          <p className="flex items-baseline gap-1.5 text-sm tabular-nums text-stone-800">
+          <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm tabular-nums text-stone-800">
+            {showFrom ? (
+              <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-400">
+                From
+              </span>
+            ) : null}
             <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-400">
               LKR
             </span>
             <span className="font-medium tracking-tight">
               {product.price.toLocaleString()}
+              {showFrom ? (
+                <span className="font-normal text-stone-500">
+                  {" "}
+                  – {max.toLocaleString()}
+                </span>
+              ) : null}
             </span>
           </p>
         </div>

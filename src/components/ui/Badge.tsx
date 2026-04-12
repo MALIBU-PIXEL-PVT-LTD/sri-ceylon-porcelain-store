@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { uiRound } from "@/components/ui/tokens";
+
 type BadgeVariant = "success" | "destructive" | "neutral";
 
 type BadgeProps = {
@@ -17,8 +19,7 @@ const variants: Record<BadgeVariant, string> = {
     "border border-stone-200/90 bg-stone-50 text-stone-700",
 };
 
-const base =
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium";
+const base = `inline-flex items-center ${uiRound} px-2.5 py-0.5 text-xs font-medium`;
 
 export function Badge({ children, variant = "neutral", className = "" }: BadgeProps) {
   return (

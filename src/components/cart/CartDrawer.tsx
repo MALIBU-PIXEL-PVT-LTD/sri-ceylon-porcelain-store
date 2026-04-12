@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 
 import { CartItem } from "@/components/cart/CartItem";
-import { Button } from "@/components/ui";
+import { Button, uiRound } from "@/components/ui";
 import { useCart } from "@/context/CartContext";
 
 const motionEasing = "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]";
@@ -72,7 +72,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
           </h2>
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-stone-400 transition-colors duration-200 hover:bg-stone-100 hover:text-stone-800"
+            className={`inline-flex h-10 w-10 items-center justify-center text-stone-400 transition-colors duration-200 hover:bg-stone-100 hover:text-stone-800 ${uiRound}`}
             onClick={onClose}
             aria-label="Close cart"
           >
@@ -81,7 +81,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7 sm:py-6">
-          <div className="flex flex-col divide-y divide-stone-200/90 rounded-xl border border-stone-200/70 bg-white p-4 shadow-sm sm:p-5">
+          <div className={`flex flex-col divide-y divide-stone-200/90 border border-stone-200/70 bg-white p-4 shadow-sm sm:p-5 ${uiRound}`}>
             {lines.length === 0 ? (
               <p className="py-8 text-center text-sm text-stone-500">
                 Your cart is empty.

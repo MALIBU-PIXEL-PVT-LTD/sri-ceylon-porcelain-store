@@ -66,6 +66,27 @@ const schema = buildSchema(`
     sku: String!
   }
 
+  type PublicProductVariant {
+    id: ID!
+    slug: String!
+    sku: String!
+    shortDescription: String!
+    description: String!
+    price: Float!
+    images: [String!]!
+    quantity: Int!
+    color: String!
+    size: String!
+  }
+
+  type PublicProductGroup {
+    groupSlug: String!
+    name: String!
+    shortDescription: String!
+    description: String!
+    variants: [PublicProductVariant!]!
+  }
+
   type Query {
     health: String!
     message: String!
@@ -78,6 +99,8 @@ const schema = buildSchema(`
     inventoryItems: [InventoryItem!]!
     publicProducts: [PublicProduct!]!
     publicProductBySlug(slug: String!): PublicProduct
+    publicProductGroups: [PublicProductGroup!]!
+    publicProductGroupBySlug(slug: String!): PublicProductGroup
   }
 
   type Mutation {
