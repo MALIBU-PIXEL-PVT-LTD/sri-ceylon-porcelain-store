@@ -17,7 +17,7 @@ export function ProductInfo({
 
   return (
     <div className={className}>
-      <h1 className="text-2xl font-medium tracking-tight text-stone-900 sm:text-3xl">
+      <h1 className="type-h2 text-stone-900">
         {product.name}
       </h1>
       {sku && (
@@ -49,7 +49,7 @@ export function ProductInfo({
 
       <div className="mt-8 border-t border-stone-100 pt-8">
         <h2 className="sr-only">Description</h2>
-        <p className="text-sm leading-relaxed text-stone-600 sm:text-[0.9375rem]">
+        <p className="type-p text-stone-600">
           {product.description}
         </p>
       </div>

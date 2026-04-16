@@ -1,13 +1,13 @@
 "use client";
 
 import { onAuthStateChanged } from "firebase/auth";
-import { CircleUserRound, LogIn, ShoppingCart } from "lucide-react";
+import { ArrowRight, CircleDollarSign, CircleUserRound, LogIn, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CartDrawer } from "@/components/cart";
-import { Container, uiRound } from "@/components/ui";
+import { Container, IconButton, uiRound } from "@/components/ui";
 import { useCart } from "@/context/CartContext";
 import { auth } from "@/lib/firebase/firebase";
 
@@ -34,6 +34,7 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
   const {
@@ -48,11 +49,18 @@ export function Navbar() {
   const cartHighlighted = cartDrawerOpen || cartActive;
   const signInActive = pathname === "/sign-in";
   const isLoggedIn = Boolean(userEmail);
+  const userInitials = (userName || userEmail || "U")
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("")
+    .slice(0, 2);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUserName(user?.displayName ?? null);
       setUserEmail(user?.email ?? null);
+      setUserPhoto(user?.photoURL ?? null);
       if (!user) {
         setProfileOpen(false);
       }
@@ -87,72 +95,134 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-stone-200/90 bg-white/85 backdrop-blur-md">
-        <Container className="flex h-16 items-center justify-between gap-6">
-          <Link
-            href="/"
-            className="shrink-0 text-[0.65rem] font-medium uppercase tracking-[0.28em] text-stone-900 sm:text-xs"
-            onClick={() => setMenuOpen(false)}
-          >
-            Sri Ceylon Porcelain
-          </Link>
-
-          <div className="hidden items-center gap-8 md:flex">
-            <nav
-              className="flex h-16 items-end"
-              aria-label="Main"
+      <header className="sticky top-0 z-50 border-b border-zinc-800/90 bg-zinc-950/90 text-zinc-100 backdrop-blur-md">
+        <Container className="relative flex h-16 items-center justify-between gap-3">
+          <div className="flex flex-1 items-center gap-3 md:flex-none">
+            <IconButton
+              icon={
+                menuOpen ? (
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18 18 6M6 6l12 12"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                    />
+                  </svg>
+                )
+              }
+              className="border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 md:hidden"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              onClick={() => setMenuOpen((o) => !o)}
             >
-              <div className="flex gap-8 border-b border-stone-200/90">
-                {mainLinks.map(({ href, label }) => {
-                  const active =
-                    href === "/"
-                      ? pathname === "/"
-                      : pathname === href || pathname.startsWith(`${href}/`);
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      aria-current={active ? "page" : undefined}
-                      className={[
-                        "-mb-px inline-flex items-center border-b-2 px-1 pb-3 pt-1 text-sm font-medium transition-colors",
-                        active
-                          ? "border-stone-900 text-stone-900"
-                          : "border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-800",
-                      ].join(" ")}
-                    >
-                      {label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </nav>
-            <button
-              type="button"
-              className={`-mr-1 inline-flex h-10 w-10 items-center justify-center ${uiRound} transition-colors ${
+              <span className="sr-only">Menu</span>
+            </IconButton>
+            <Link
+              href="/"
+              className="shrink-0 text-[0.65rem] font-medium uppercase tracking-[0.28em] text-zinc-100 sm:text-xs"
+              onClick={() => setMenuOpen(false)}
+            >
+              Sri Ceylon Porcelain
+            </Link>
+          </div>
+
+          <nav
+            className="absolute left-1/2 hidden h-16 -translate-x-1/2 items-end md:flex"
+            aria-label="Main"
+          >
+            <div className="flex gap-8 border-b border-zinc-800/90">
+              {mainLinks.map(({ href, label }) => {
+                const active =
+                  href === "/"
+                    ? pathname === "/"
+                    : pathname === href || pathname.startsWith(`${href}/`);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    className={[
+                      "-mb-px inline-flex items-center border-b-2 px-1 pb-3 pt-1 text-sm font-medium transition-colors",
+                      active
+                        ? "border-zinc-100 text-zinc-100"
+                        : "border-transparent text-zinc-400 hover:border-zinc-500 hover:text-zinc-200",
+                    ].join(" ")}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+
+          <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
+            <IconButton
+              icon={<CartIconWithBadge count={totalQuantity} />}
+              className={`${
                 cartHighlighted
-                  ? "text-stone-900"
-                  : "text-stone-500 hover:text-stone-900"
+                  ? "bg-zinc-800/80 text-zinc-100 hover:bg-zinc-800"
+                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`}
               aria-label={`Cart, ${totalQuantity} items`}
               aria-expanded={cartDrawerOpen}
               aria-controls="cart-drawer"
               onClick={openCartDrawer}
-            >
-              <CartIconWithBadge count={totalQuantity} />
-            </button>
+            />
+            <IconButton
+              icon={<CircleDollarSign className="h-5 w-5" strokeWidth={1.5} aria-hidden />}
+              className="text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              aria-label="Currency selector"
+            />
             <div className="relative" ref={profileRef}>
               <button
                 type="button"
-                className={`inline-flex h-10 max-w-[12rem] items-center gap-2 px-3 transition-colors ${uiRound} ${
+                className={`inline-flex h-10 max-w-[12rem] items-center gap-2 px-2.5 transition-colors ${uiRound} ${
                   profileOpen
-                    ? "text-stone-900"
-                    : "text-stone-500 hover:text-stone-900"
+                    ? "bg-zinc-800 text-zinc-100"
+                    : "text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
                 }`}
                 aria-label="Profile"
                 aria-expanded={profileOpen}
                 onClick={() => setProfileOpen((open) => !open)}
               >
-                <CircleUserRound className="h-5 w-5" strokeWidth={1.5} aria-hidden />
+                {isLoggedIn ? (
+                  userPhoto ? (
+                    <img
+                      src={userPhoto}
+                      alt={userName || "User profile"}
+                      className={`h-7 w-7 object-cover ${uiRound}`}
+                    />
+                  ) : (
+                    <span className={`inline-flex h-7 w-7 items-center justify-center bg-zinc-700 text-xs font-semibold text-zinc-100 ${uiRound}`}>
+                      {userInitials}
+                    </span>
+                  )
+                ) : (
+                  <CircleUserRound className="h-5 w-5" strokeWidth={1.5} aria-hidden />
+                )}
                 {isLoggedIn ? (
                   <span className="max-w-[8rem] truncate text-sm">
                     {userName || "Profile"}
@@ -160,89 +230,49 @@ export function Navbar() {
                 ) : null}
               </button>
               {profileOpen ? (
-                <div className={`absolute right-0 top-12 w-64 border border-stone-200 bg-white p-3 shadow-md ${uiRound}`}>
+                <div className={`absolute right-0 top-12 w-64 border border-zinc-700 bg-zinc-900 p-3 shadow-md ${uiRound}`}>
                   {isLoggedIn ? (
                     <>
-                      <p className="truncate text-sm font-semibold text-stone-900">
+                      <p className="truncate text-sm font-semibold text-zinc-100">
                         {userName || "User"}
                       </p>
-                      <p className="mt-1 truncate text-xs text-stone-500">
+                      <p className="mt-1 truncate text-xs text-zinc-400">
                         {userEmail || "-"}
                       </p>
                       <button
                         type="button"
-                        className={`mt-3 w-full border border-stone-300 px-3 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50 ${uiRound}`}
+                        className={`mt-3 inline-flex w-full items-center justify-center gap-2 border border-zinc-600 px-3 py-2 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-800 ${uiRound}`}
                         onClick={handleLogout}
                       >
-                        Logout
+                        <span>Log Out</span>
+                        <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
                       </button>
                     </>
                   ) : (
                     <Link
                       href="/sign-in"
-                      className={`block w-full border border-stone-300 px-3 py-2 text-center text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50 ${uiRound}`}
+                      className={`inline-flex w-full items-center justify-center gap-2 border border-zinc-600 px-3 py-2 text-center text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-800 ${uiRound}`}
                       onClick={() => setProfileOpen(false)}
                     >
-                      Sign in
+                      <span>Sign In</span>
+                      <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
                     </Link>
                   )}
                 </div>
               ) : null}
             </div>
           </div>
-
-          <button
-            type="button"
-            className={`inline-flex h-10 w-10 items-center justify-center border border-stone-200 text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50 md:hidden ${uiRound}`}
-            aria-expanded={menuOpen}
-            aria-controls="mobile-nav"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            <span className="sr-only">Menu</span>
-            {menuOpen ? (
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                aria-hidden
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                aria-hidden
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                />
-              </svg>
-            )}
-          </button>
         </Container>
 
         <div
           id="mobile-nav"
-          className={`border-t border-stone-200/90 bg-white/95 backdrop-blur-md md:hidden ${
+          className={`border-t border-zinc-800/90 bg-zinc-950/95 backdrop-blur-md md:hidden ${
             menuOpen ? "block" : "hidden"
           }`}
         >
           <Container className="py-4">
             <nav
-              className="flex flex-col border-b border-stone-200/90"
+              className="flex flex-col border-b border-zinc-800/90"
               aria-label="Mobile"
             >
               {mainLinks.map(({ href, label }) => {
@@ -258,8 +288,8 @@ export function Navbar() {
                     className={[
                       "-mb-px border-b-2 py-3 text-sm font-medium transition-colors first:pt-0",
                       active
-                        ? "border-stone-900 text-stone-900"
-                        : "border-transparent text-stone-500 hover:border-stone-200 hover:text-stone-800",
+                        ? "border-zinc-100 text-zinc-100"
+                        : "border-transparent text-zinc-400 hover:border-zinc-600 hover:text-zinc-200",
                     ].join(" ")}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -269,10 +299,10 @@ export function Navbar() {
               })}
               <button
                 type="button"
-                className={`mt-1 flex w-full items-center gap-3 border-t border-stone-100 py-3 pt-4 text-left text-sm font-medium ${
+                className={`mt-1 flex w-full items-center gap-3 border-t border-zinc-800 py-3 pt-4 text-left text-sm font-medium ${
                   cartHighlighted
-                    ? "text-stone-900"
-                    : "text-stone-500 hover:text-stone-900"
+                    ? "text-zinc-100"
+                    : "text-zinc-400 hover:text-zinc-100"
                 }`}
                 aria-label={`Cart, ${totalQuantity} items`}
                 aria-expanded={cartDrawerOpen}
@@ -285,41 +315,56 @@ export function Navbar() {
                 <CartIconWithBadge count={totalQuantity} />
                 <span>Cart</span>
               </button>
+              <button
+                type="button"
+                className="flex items-center gap-3 py-3 text-left text-sm font-medium text-zinc-400 hover:text-zinc-100"
+                aria-label="Currency selector"
+              >
+                <CircleDollarSign className="h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden />
+                <span>Currency</span>
+              </button>
               {isLoggedIn ? (
                 <div className="py-3">
-                  <div className="flex items-start gap-3 text-sm text-stone-900">
-                    <CircleUserRound
-                      className="mt-0.5 h-5 w-5 shrink-0"
-                      strokeWidth={1.5}
-                      aria-hidden
-                    />
+                  <div className="flex items-start gap-3 text-sm text-zinc-100">
+                    {userPhoto ? (
+                      <img
+                        src={userPhoto}
+                        alt={userName || "User profile"}
+                        className={`mt-0.5 h-7 w-7 shrink-0 object-cover ${uiRound}`}
+                      />
+                    ) : (
+                      <span className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center bg-zinc-700 text-xs font-semibold text-zinc-100 ${uiRound}`}>
+                        {userInitials}
+                      </span>
+                    )}
                     <div className="min-w-0">
                       <p className="truncate font-medium">{userName || "User"}</p>
-                      <p className="truncate text-xs text-stone-500">
+                      <p className="truncate text-xs text-zinc-400">
                         {userEmail || "-"}
                       </p>
                     </div>
                   </div>
                   <button
                     type="button"
-                    className={`mt-3 w-full border border-stone-300 px-3 py-2 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-50 ${uiRound}`}
+                    className={`mt-3 inline-flex w-full items-center justify-center gap-2 border border-zinc-600 px-3 py-2 text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-800 ${uiRound}`}
                     onClick={handleLogout}
                   >
-                    Logout
+                    <span>Log Out</span>
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
                   </button>
                 </div>
               ) : (
                 <Link
                   href="/sign-in"
-                  className={`flex items-center gap-3 py-3 text-sm ${
+                  className={`flex items-center gap-2 py-3 text-sm ${
                     signInActive
-                      ? "text-stone-900"
-                      : "text-stone-500 hover:text-stone-900"
+                      ? "text-zinc-100"
+                      : "text-zinc-400 hover:text-zinc-100"
                   }`}
                   onClick={() => setMenuOpen(false)}
                 >
+                  <span>Sign In</span>
                   <LogIn className="h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden />
-                  Sign in
                 </Link>
               )}
             </nav>

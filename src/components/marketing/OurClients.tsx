@@ -24,10 +24,10 @@ export function OurClients() {
           >
             Our clients
           </h2>
-          <p className="mt-3 text-pretty text-xl font-medium tracking-tight text-stone-900 sm:text-2xl">
+          <p className="type-h4 mt-3 text-pretty text-stone-900">
             Trusted by tables that care about craft
           </p>
-          <p className="mt-3 text-pretty text-sm leading-relaxed text-stone-600 sm:text-base">
+          <p className="type-p mt-3 text-pretty text-stone-600">
             Hotels, independent restaurants, and designers who choose porcelain
             for the long run—not the photo op.
           </p>

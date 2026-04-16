@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 
 import { CartItem } from "@/components/cart/CartItem";
-import { Button, uiRound } from "@/components/ui";
+import { Button, IconButton, uiRound } from "@/components/ui";
 import { useCart } from "@/context/CartContext";
 
 const motionEasing = "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]";
@@ -70,14 +70,12 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
           >
             Your cart
           </h2>
-          <button
-            type="button"
-            className={`inline-flex h-10 w-10 items-center justify-center text-stone-400 transition-colors duration-200 hover:bg-stone-100 hover:text-stone-800 ${uiRound}`}
+          <IconButton
+            icon={<X className="h-[18px] w-[18px]" strokeWidth={1.5} />}
+            className="text-stone-400 hover:text-stone-800"
             onClick={onClose}
             aria-label="Close cart"
-          >
-            <X className="h-[18px] w-[18px]" strokeWidth={1.5} />
-          </button>
+          />
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7 sm:py-6">

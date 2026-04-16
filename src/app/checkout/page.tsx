@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { CartItem, CartSummary } from "@/components/cart";
@@ -50,9 +51,10 @@ export default function CheckoutPage() {
         </p>
         <Link
           href="/products"
-          className="mt-8 inline-flex items-center justify-center rounded-sm bg-stone-900 px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
+          className="mt-8 inline-flex items-center justify-center gap-2 rounded-sm bg-stone-900 px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
         >
-          Browse products
+          <span>Browse Products</span>
+          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
         </Link>
       </div>
     );
@@ -71,9 +73,10 @@ export default function CheckoutPage() {
         </div>
         <Link
           href="/cart"
-          className="text-sm text-stone-500 transition-colors hover:text-stone-900"
+          className="inline-flex items-center gap-2 text-sm text-stone-500 transition-colors hover:text-stone-900"
         >
-          Back to cart
+          <span>Back To Cart</span>
+          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
         </Link>
       </div>
 
@@ -133,7 +136,7 @@ export default function CheckoutPage() {
               footer={
                 <>
                   <Button type="submit" className="w-full" disabled={submitted}>
-                    {submitted ? "Order submitted" : "Confirm order"}
+                    {submitted ? "Order Submitted" : "Confirm Order"}
                   </Button>
                   <p className="mt-4 text-center text-xs text-stone-500">
                     By confirming, you agree to our terms for this demo store.

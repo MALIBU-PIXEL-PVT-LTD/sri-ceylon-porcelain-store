@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 import {
   FaqCenteredAccordion,
@@ -60,26 +61,28 @@ export default async function Home() {
           </p>
           <h1
             id="hero-heading"
-            className="mt-6 text-3xl font-medium leading-[1.15] tracking-tight text-white sm:text-4xl sm:leading-[1.1] lg:text-[2.75rem]"
+            className="type-h1 mt-6 text-white"
           >
             Porcelain made for tables that value calm, clarity, and craft.
           </h1>
-          <p className="mt-6 max-w-xl text-sm leading-relaxed text-stone-200 sm:text-base">
+          <p className="type-p mt-6 max-w-xl text-stone-200">
             A curated collection of glazed ceramics—understated forms, honest
             materials, and a finish that feels as refined as it looks.
           </p>
           <div className="mt-10 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center sm:gap-4">
             <Link
               href="/products"
-              className={`inline-flex h-11 items-center justify-center bg-white px-8 text-sm font-medium tracking-wide text-stone-900 transition-colors hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80 ${uiRound}`}
+              className={`inline-flex h-11 items-center justify-center gap-2 bg-white px-8 text-sm font-medium tracking-wide text-stone-900 transition-colors hover:bg-stone-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80 ${uiRound}`}
             >
-              Shop the collection
+              <span>Shop The Collection</span>
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
             </Link>
             <Link
               href="/products"
-              className={`inline-flex h-11 items-center justify-center border border-white/40 bg-white/5 px-8 text-sm font-medium text-white backdrop-blur-[2px] transition-colors hover:border-white/60 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60 ${uiRound}`}
+              className={`inline-flex h-11 items-center justify-center gap-2 border border-white/40 bg-white/5 px-8 text-sm font-medium text-white backdrop-blur-[2px] transition-colors hover:border-white/60 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60 ${uiRound}`}
             >
-              View all products
+              <span>View All Products</span>
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
             </Link>
           </div>
         </div>
@@ -95,15 +98,16 @@ export default async function Home() {
               >
                 Featured
               </h2>
-              <p className="mt-2 text-xl font-medium tracking-tight text-stone-900 sm:text-2xl">
+              <p className="type-h4 mt-2 text-stone-900">
                 Pieces we love right now
               </p>
             </div>
             <Link
               href="/products"
-              className="mt-4 text-sm text-stone-500 underline-offset-4 transition-colors hover:text-stone-900 hover:underline sm:mt-0"
+              className="mt-4 inline-flex items-center gap-2 text-sm text-stone-500 underline-offset-4 transition-colors hover:text-stone-900 hover:underline sm:mt-0"
             >
-              See full collection
+              <span>See Full Collection</span>
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
             </Link>
           </div>
 
@@ -135,7 +139,7 @@ export default async function Home() {
           >
             Shop by category
           </h2>
-          <p className="mt-2 max-w-xl text-xl font-medium tracking-tight text-stone-900 sm:text-2xl">
+          <p className="type-h4 mt-2 max-w-xl text-stone-900">
             Explore the range by how you use it
           </p>
 
@@ -152,8 +156,9 @@ export default async function Home() {
                   <span className="mt-2 flex-1 text-sm leading-relaxed text-stone-500">
                     {cat.description}
                   </span>
-                  <span className="mt-6 text-xs font-medium uppercase tracking-wider text-stone-600 transition-colors group-hover:text-stone-900">
-                    Browse →
+                  <span className="mt-6 inline-flex items-center gap-2 text-xs font-medium tracking-wider text-stone-600 transition-colors group-hover:text-stone-900">
+                    <span>Browse Products</span>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   </span>
                 </Link>
               </li>

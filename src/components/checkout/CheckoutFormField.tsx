@@ -16,10 +16,17 @@ export function CheckoutFormField({
   wrapperClassName = "",
   ...inputProps
 }: CheckoutFormFieldProps) {
+  const isRequired = Boolean(inputProps.required);
+
   return (
     <div className={wrapperClassName}>
       <label htmlFor={id} className="text-xs font-medium text-stone-600">
         {label}
+        {isRequired ? (
+          <span className="ml-0.5 text-red-600" aria-hidden="true">
+            *
+          </span>
+        ) : null}
       </label>
       <input {...inputProps} id={id} name={id} className={inputClassName} />
     </div>

@@ -7,12 +7,12 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { auth, googleProvider } from "@/lib/firebase/firebase";
-import { ErrorMassage, inputFieldClassName, uiRound } from "@/components/ui";
+import { ErrorMassage, IconButton, inputFieldClassName, uiRound } from "@/components/ui";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -185,6 +185,9 @@ export function SignInForm() {
             className="block text-sm font-medium text-stone-800"
           >
             Email address
+            <span className="ml-0.5 text-red-600" aria-hidden="true">
+              *
+            </span>
           </label>
           <input
             id="sign-in-email"
@@ -202,6 +205,9 @@ export function SignInForm() {
             className="block text-sm font-medium text-stone-800"
           >
             Password
+            <span className="ml-0.5 text-red-600" aria-hidden="true">
+              *
+            </span>
           </label>
           <div className="relative mt-2">
             <input
@@ -212,18 +218,19 @@ export function SignInForm() {
               required
               className={`${inputFieldClassName} pr-10`}
             />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 inline-flex items-center pr-3 text-stone-500 transition-colors hover:text-stone-800"
+            <IconButton
+              icon={
+                showPassword ? (
+                  <EyeOff className="h-4 w-4" aria-hidden />
+                ) : (
+                  <Eye className="h-4 w-4" aria-hidden />
+                )
+              }
+              size="sm"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-800 active:bg-stone-100"
               onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" aria-hidden />
-              ) : (
-                <Eye className="h-4 w-4" aria-hidden />
-              )}
-            </button>
+            />
           </div>
         </div>
 
@@ -247,9 +254,10 @@ export function SignInForm() {
         <button
           type="submit"
           disabled={emailLoading}
-          className={`flex h-11 w-full items-center justify-center bg-stone-900 text-sm font-semibold text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400 ${uiRound}`}
+          className={`flex h-11 w-full items-center justify-center gap-2 bg-stone-900 text-sm font-semibold text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400 ${uiRound}`}
         >
-          {emailLoading ? "Signing in..." : "Sign in"}
+          <span>{emailLoading ? "Signing In..." : "Sign In"}</span>
+          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
         </button>
         {emailError ? <ErrorMassage title="Sign in failed" message={emailError} /> : null}
         </form>
@@ -272,8 +280,8 @@ export function SignInForm() {
             disabled={googleLoading}
             className={`inline-flex h-11 w-full items-center justify-center gap-2 border border-stone-200 bg-white px-4 text-sm font-semibold text-stone-800 transition-colors hover:border-stone-300 hover:bg-stone-50 ${uiRound}`}
           >
+            <span>{googleLoading ? "Signing In..." : "Continue With Google"}</span>
             <GoogleIcon className="size-5 shrink-0" />
-            {googleLoading ? "Signing in..." : "Continue with Google"}
           </button>
           {googleError ? (
             <div className="mt-3">

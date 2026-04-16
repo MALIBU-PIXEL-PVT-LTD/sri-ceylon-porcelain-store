@@ -101,6 +101,9 @@ export function ProductPurchaseForm({
             className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500"
           >
             Color
+            <span className="ml-0.5 text-red-600" aria-hidden="true">
+              *
+            </span>
           </h2>
           <div className="mt-4 flex flex-wrap gap-3">
             {colors.map((c) => {
@@ -137,6 +140,9 @@ export function ProductPurchaseForm({
             className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500"
           >
             Size
+            <span className="ml-0.5 text-red-600" aria-hidden="true">
+              *
+            </span>
           </h2>
 
           <div className="mt-4 grid grid-cols-3 gap-3">
@@ -168,7 +174,7 @@ export function ProductPurchaseForm({
         className="mt-10 w-full"
         onClick={handleAddToCart}
       >
-        Add to Cart
+        Add To Cart
       </Button>
     </div>
   );

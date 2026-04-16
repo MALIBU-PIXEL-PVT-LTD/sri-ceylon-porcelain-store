@@ -47,10 +47,10 @@ export function FaqCenteredAccordion() {
         >
           FAQ
         </h2>
-        <p className="mt-2 text-pretty text-xl font-medium tracking-tight text-stone-900 sm:text-2xl">
+        <p className="type-h4 mt-2 text-pretty text-stone-900">
           Questions we hear often
         </p>
-        <p className="mt-3 text-pretty text-sm leading-relaxed text-stone-600 sm:text-base">
+        <p className="type-p mt-3 text-pretty text-stone-600">
           Everything below applies to orders placed on this store. For bespoke or trade
           projects, we will confirm details in writing.
         </p>

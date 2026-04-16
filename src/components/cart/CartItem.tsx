@@ -1,4 +1,4 @@
-import { Minus, Plus } from "lucide-react";
+import { ArrowRight, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -190,9 +190,10 @@ export function CartItem({
             <button
               type="button"
               onClick={onRemove}
-              className="text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-stone-400 transition-colors duration-200 hover:text-red-700"
+              className="inline-flex items-center gap-2 text-xs font-medium text-stone-500 transition-colors duration-200 hover:text-red-700"
             >
-              Remove
+              <span>Remove Item</span>
+              <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
             </button>
           </div>
         )}

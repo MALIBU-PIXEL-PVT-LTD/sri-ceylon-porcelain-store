@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { CartItem, CartSummary } from "@/components/cart";
@@ -47,9 +48,10 @@ export default function CartPage() {
         </p>
         <Link
           href="/products"
-          className="mt-8 inline-flex items-center justify-center rounded-sm bg-stone-900 px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
+          className="mt-8 inline-flex items-center justify-center gap-2 rounded-sm bg-stone-900 px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
         >
-          Browse products
+          <span>Browse Products</span>
+          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
         </Link>
       </div>
     );
@@ -65,15 +67,17 @@ export default function CartPage() {
           <button
             type="button"
             onClick={() => setClearModalOpen(true)}
-            className="text-sm text-stone-500 underline-offset-4 transition-colors hover:text-stone-900 hover:underline"
+            className="inline-flex items-center gap-2 text-sm text-stone-500 underline-offset-4 transition-colors hover:text-stone-900 hover:underline"
           >
-            Clear cart
+            <span>Clear Cart</span>
+            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
           </button>
           <Link
             href="/products"
-            className="text-sm text-stone-500 underline-offset-4 transition-colors hover:text-stone-900 hover:underline"
+            className="inline-flex items-center gap-2 text-sm text-stone-500 underline-offset-4 transition-colors hover:text-stone-900 hover:underline"
           >
-            Continue shopping
+            <span>Continue Shopping</span>
+            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
           </Link>
         </div>
       </div>
@@ -96,9 +100,10 @@ export default function CartPage() {
             <CartSummary lines={lines} />
             <Link
               href="/checkout"
-              className="inline-flex w-full items-center justify-center rounded-sm bg-stone-900 px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-stone-900 px-8 py-3.5 text-sm font-medium text-white transition-colors hover:bg-stone-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-400"
             >
-              Checkout
+              <span>Checkout</span>
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
             </Link>
           </div>
         </div>
@@ -148,7 +153,7 @@ export default function CartPage() {
                 className="w-full px-5 sm:w-auto"
                 onClick={confirmClearCart}
               >
-                Remove all items
+                Remove All Items
               </Button>
             </div>
           </div>
