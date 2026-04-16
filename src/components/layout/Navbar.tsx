@@ -96,8 +96,8 @@ export function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-zinc-800/90 bg-zinc-950/90 text-zinc-100 backdrop-blur-md">
-        <Container className="relative flex h-16 items-center justify-between gap-3">
-          <div className="flex flex-1 items-center gap-3 md:flex-none">
+        <Container className="relative flex h-16 min-w-0 items-center justify-between gap-2 sm:gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:flex-none">
             <IconButton
               icon={
                 menuOpen ? (
@@ -142,7 +142,7 @@ export function Navbar() {
             </IconButton>
             <Link
               href="/"
-              className="shrink-0 text-[0.65rem] font-medium uppercase tracking-[0.28em] text-zinc-100 sm:text-xs"
+              className="min-w-0 truncate text-[0.58rem] font-medium uppercase tracking-[0.2em] text-zinc-100 sm:text-[0.65rem] sm:tracking-[0.24em] md:shrink-0 md:text-xs md:tracking-[0.28em]"
               onClick={() => setMenuOpen(false)}
             >
               Sri Ceylon Porcelain
@@ -178,7 +178,7 @@ export function Navbar() {
             </div>
           </nav>
 
-          <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
             <IconButton
               icon={<CartIconWithBadge count={totalQuantity} />}
               className={`${
@@ -186,6 +186,7 @@ export function Navbar() {
                   ? "bg-zinc-800/80 text-zinc-100 hover:bg-zinc-800"
                   : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`}
+              size="sm"
               aria-label={`Cart, ${totalQuantity} items`}
               aria-expanded={cartDrawerOpen}
               aria-controls="cart-drawer"
@@ -194,12 +195,13 @@ export function Navbar() {
             <IconButton
               icon={<CircleDollarSign className="h-5 w-5" strokeWidth={1.5} aria-hidden />}
               className="text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              size="sm"
               aria-label="Currency selector"
             />
             <div className="relative" ref={profileRef}>
               <button
                 type="button"
-                className={`inline-flex h-10 max-w-[12rem] items-center gap-2 px-2.5 transition-colors ${uiRound} ${
+                className={`inline-flex h-9 items-center gap-2 px-2 transition-colors sm:h-10 sm:px-2.5 ${uiRound} ${
                   profileOpen
                     ? "bg-zinc-800 text-zinc-100"
                     : "text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
@@ -224,7 +226,7 @@ export function Navbar() {
                   <CircleUserRound className="h-5 w-5" strokeWidth={1.5} aria-hidden />
                 )}
                 {isLoggedIn ? (
-                  <span className="max-w-[8rem] truncate text-sm">
+                  <span className="hidden max-w-[8rem] truncate text-sm lg:inline">
                     {userName || "Profile"}
                   </span>
                 ) : null}
