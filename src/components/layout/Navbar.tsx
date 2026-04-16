@@ -61,9 +61,9 @@ export function Navbar() {
       setUserName(user?.displayName ?? null);
       setUserEmail(user?.email ?? null);
       setUserPhoto(user?.photoURL ?? null);
-      if (!user) {
-        setProfileOpen(false);
-      }
+      // Keep navbar state stable when auth status flips.
+      setProfileOpen(false);
+      setMenuOpen(false);
     });
 
     return () => unsubscribe();
@@ -201,7 +201,7 @@ export function Navbar() {
             <div className="relative" ref={profileRef}>
               <button
                 type="button"
-                className={`inline-flex h-9 items-center gap-2 px-2 transition-colors sm:h-10 sm:px-2.5 ${uiRound} ${
+                className={`inline-flex h-9 w-9 items-center justify-center transition-colors sm:h-10 sm:w-10 lg:w-auto lg:gap-2 lg:px-2.5 ${uiRound} ${
                   profileOpen
                     ? "bg-zinc-800 text-zinc-100"
                     : "text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
@@ -215,18 +215,20 @@ export function Navbar() {
                     <img
                       src={userPhoto}
                       alt={userName || "User profile"}
-                      className={`h-7 w-7 object-cover ${uiRound}`}
+                      className={`h-7 w-7 shrink-0 object-cover ${uiRound}`}
                     />
                   ) : (
-                    <span className={`inline-flex h-7 w-7 items-center justify-center bg-zinc-700 text-xs font-semibold text-zinc-100 ${uiRound}`}>
+                    <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center bg-zinc-700 text-xs font-semibold text-zinc-100 ${uiRound}`}>
                       {userInitials}
                     </span>
                   )
                 ) : (
-                  <CircleUserRound className="h-5 w-5" strokeWidth={1.5} aria-hidden />
+                  <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center bg-zinc-700/60 ${uiRound}`}>
+                    <CircleUserRound className="h-5 w-5" strokeWidth={1.5} aria-hidden />
+                  </span>
                 )}
                 {isLoggedIn ? (
-                  <span className="hidden max-w-[8rem] truncate text-sm lg:inline">
+                  <span className="hidden max-w-[8rem] truncate text-sm lg:block">
                     {userName || "Profile"}
                   </span>
                 ) : null}
