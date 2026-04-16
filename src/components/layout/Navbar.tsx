@@ -1,7 +1,7 @@
 "use client";
 
 import { onAuthStateChanged } from "firebase/auth";
-import { ArrowRight, CircleDollarSign, CircleUserRound, LogIn, ShoppingCart } from "lucide-react";
+import { ArrowRight, CircleDollarSign, CircleUserRound, ChevronDown, LogIn, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -15,6 +15,26 @@ const mainLinks = [
   { href: "/", label: "Home" },
   { href: "/products", label: "Products" },
 ] as const;
+
+type CurrencyCode = "LKR" | "USD" | "GBP";
+
+const currencyOptions: Array<{
+  code: CurrencyCode;
+  label: string; // Display label (ex: "USD ($)")
+  symbol: string; // Button symbol (ex: "$")
+}> = [
+  { code: "LKR", label: "LKR (Rs)", symbol: "Rs" },
+  { code: "USD", label: "USD ($)", symbol: "$" },
+  { code: "GBP", label: "GBP (£)", symbol: "£" },
+];
+
+function getCurrencySymbol(code: CurrencyCode) {
+  return currencyOptions.find((c) => c.code === code)?.symbol ?? "Rs";
+}
+
+function getCurrencyLabel(code: CurrencyCode) {
+  return currencyOptions.find((c) => c.code === code)?.label ?? "LKR (Rs)";
+}
 
 function CartIconWithBadge({ count }: { count: number }) {
   return (
@@ -35,8 +55,12 @@ export function Navbar() {
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<CurrencyCode>("LKR");
+  const [currencyOpen, setCurrencyOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
+  const currencyDesktopRef = useRef<HTMLDivElement | null>(null);
+  const currencyMobileRef = useRef<HTMLDivElement | null>(null);
   const {
     totalQuantity,
     cartDrawerOpen,
@@ -64,6 +88,7 @@ export function Navbar() {
       // Keep navbar state stable when auth status flips.
       setProfileOpen(false);
       setMenuOpen(false);
+      setCurrencyOpen(false);
     });
 
     return () => unsubscribe();
@@ -71,6 +96,7 @@ export function Navbar() {
 
   useEffect(() => {
     setProfileOpen(false);
+    setCurrencyOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -86,6 +112,23 @@ export function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!currencyOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      const insideDesktop = currencyDesktopRef.current?.contains(target) ?? false;
+      const insideMobile = currencyMobileRef.current?.contains(target) ?? false;
+      if (!insideDesktop && !insideMobile) {
+        setCurrencyOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [currencyOpen]);
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -192,12 +235,67 @@ export function Navbar() {
               aria-controls="cart-drawer"
               onClick={openCartDrawer}
             />
-            <IconButton
-              icon={<CircleDollarSign className="h-5 w-5" strokeWidth={1.5} aria-hidden />}
-              className="text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
-              size="sm"
-              aria-label="Currency selector"
-            />
+            <div className="relative" ref={currencyDesktopRef}>
+              <IconButton
+                icon={
+                  <span className="inline-flex items-center gap-0.5">
+                    <span className="text-[12px] font-semibold leading-none">
+                      {getCurrencySymbol(currency)}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${currencyOpen ? "rotate-180" : ""}`}
+                      strokeWidth={1.5}
+                      aria-hidden
+                    />
+                  </span>
+                }
+                className="w-10 h-10 px-0 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 active:bg-zinc-700 active:text-zinc-100"
+                size="md"
+                aria-label={`Currency selector (current: ${getCurrencyLabel(currency)})`}
+                aria-haspopup="listbox"
+                aria-expanded={currencyOpen}
+                aria-controls="currency-listbox-desktop"
+                onClick={() => {
+                  setProfileOpen(false);
+                  setCurrencyOpen((o) => !o);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setCurrencyOpen(false);
+                }}
+              />
+              {currencyOpen ? (
+                <div
+                  id="currency-listbox-desktop"
+                  role="listbox"
+                  aria-label="Currency"
+                  className="absolute right-0 top-12 z-50 w-44 overflow-hidden rounded-md border border-zinc-800 bg-zinc-950 shadow-lg"
+                >
+                  {currencyOptions.map((opt) => {
+                    const selected = opt.code === currency;
+                    return (
+                      <button
+                        key={opt.code}
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        className={[
+                          "block w-full px-3 py-2 text-left text-sm transition-colors",
+                          selected
+                            ? "bg-zinc-800 text-zinc-100"
+                            : "text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100",
+                        ].join(" ")}
+                        onClick={() => {
+                          setCurrency(opt.code);
+                          setCurrencyOpen(false);
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
             <div className="relative" ref={profileRef}>
               <button
                 type="button"
@@ -319,14 +417,69 @@ export function Navbar() {
                 <CartIconWithBadge count={totalQuantity} />
                 <span>Cart</span>
               </button>
-              <button
-                type="button"
-                className="flex items-center gap-3 py-3 text-left text-sm font-medium text-zinc-400 hover:text-zinc-100"
-                aria-label="Currency selector"
-              >
-                <CircleDollarSign className="h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden />
-                <span>Currency</span>
-              </button>
+              <div className="relative" ref={currencyMobileRef}>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-3 text-left text-sm font-medium text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 active:bg-zinc-700"
+                  aria-label={`Currency selector (current: ${getCurrencyLabel(currency)})`}
+                  aria-haspopup="listbox"
+                  aria-expanded={currencyOpen}
+                  aria-controls="currency-listbox-mobile"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    setCurrencyOpen((o) => !o);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setCurrencyOpen(false);
+                  }}
+                >
+                  <span className="inline-flex items-center gap-3">
+                    <CircleDollarSign className="h-6 w-6 shrink-0" strokeWidth={1.5} aria-hidden />
+                    <span>Currency</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="text-sm font-semibold">{getCurrencySymbol(currency)}</span>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${currencyOpen ? "rotate-180" : ""}`}
+                      strokeWidth={1.5}
+                      aria-hidden
+                    />
+                  </span>
+                </button>
+                {currencyOpen ? (
+                  <div
+                    id="currency-listbox-mobile"
+                    role="listbox"
+                    aria-label="Currency"
+                    className="absolute left-0 right-0 top-[100%] z-50 mt-2 overflow-hidden rounded-md border border-zinc-800 bg-zinc-950 shadow-lg"
+                  >
+                    {currencyOptions.map((opt) => {
+                      const selected = opt.code === currency;
+                      return (
+                        <button
+                          key={opt.code}
+                          type="button"
+                          role="option"
+                          aria-selected={selected}
+                          className={[
+                            "block w-full px-3 py-2 text-left text-sm transition-colors",
+                            selected
+                              ? "bg-zinc-800 text-zinc-100"
+                              : "text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100",
+                          ].join(" ")}
+                          onClick={() => {
+                            setCurrency(opt.code);
+                            setCurrencyOpen(false);
+                            setMenuOpen(false);
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
               {isLoggedIn ? (
                 <div className="py-3">
                   <div className="flex items-start gap-3 text-sm text-zinc-100">
