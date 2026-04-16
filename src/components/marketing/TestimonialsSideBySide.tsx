@@ -12,7 +12,7 @@ import { IconButton } from "@/components/ui";
 const testimonials = [
   {
     quote:
-      "We replaced a full table setting after five years of daily service. The glaze still reads calm under candlelight—our guests comment on it more than the wine list.",
+      "We replaced a full table five years of daily service. The glaze still reads calm under candlelight—our guests comment on it more than the wine list.",
     author: "Amaya Perera",
     role: "Owner, Wild Coast Table",
     initials: "AP",
