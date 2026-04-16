@@ -1,4 +1,7 @@
+ "use client";
+
 import { StockBadge } from "@/components/ui";
+import { useCurrency } from "@/context/CurrencyContext";
 import { getSkuForProductSize } from "@/lib/sku";
 import type { Product } from "@/types/product";
 
@@ -14,6 +17,7 @@ export function ProductInfo({
   className = "",
 }: ProductInfoProps) {
   const sku = product.sku ?? getSkuForProductSize(product.slug, selectedSize);
+  const { currency, formatAmount } = useCurrency();
 
   return (
     <div className={className}>
@@ -36,10 +40,10 @@ export function ProductInfo({
 
       <p className="mt-5 flex items-baseline gap-2 text-stone-800">
         <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-400">
-          LKR
+          {currency}
         </span>
         <span className="text-2xl font-medium tabular-nums tracking-tight sm:text-[1.65rem]">
-          {product.price.toLocaleString()}
+          {formatAmount(product.price)}
         </span>
       </p>
 

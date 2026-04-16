@@ -7,6 +7,7 @@ import { useCallback, useEffect } from "react";
 import { CartItem } from "@/components/cart/CartItem";
 import { Button, IconButton, uiRound } from "@/components/ui";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const motionEasing = "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]";
 
@@ -18,6 +19,7 @@ type CartDrawerProps = {
 export function CartDrawer({ open, onClose }: CartDrawerProps) {
   const router = useRouter();
   const { lines, totalPrice, updateQuantity } = useCart();
+  const { currency, formatAmount } = useCurrency();
 
   const handleCheckout = useCallback(() => {
     onClose();
@@ -106,9 +108,9 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
             </p>
             <p className="text-[1.75rem] font-medium leading-none tracking-tight text-stone-900 tabular-nums">
               <span className="mr-1.5 align-baseline text-xs font-medium uppercase tracking-[0.2em] text-stone-400">
-                LKR
+                {currency}
               </span>
-              {totalPrice.toLocaleString()}
+              {formatAmount(totalPrice)}
             </p>
           </div>
 

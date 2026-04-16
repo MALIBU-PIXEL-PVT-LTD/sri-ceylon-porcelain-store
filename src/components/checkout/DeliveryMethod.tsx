@@ -2,6 +2,8 @@
 
 import { useCallback, useState } from "react";
 
+import { useCurrency } from "@/context/CurrencyContext";
+
 export type DeliveryMethodId = "standard" | "express";
 
 const OPTIONS: {
@@ -50,6 +52,7 @@ export function DeliveryMethod({
   const [internalId, setInternalId] = useState<DeliveryMethodId>(defaultValue);
   const isControlled = valueProp !== undefined;
   const selectedId = isControlled ? valueProp : internalId;
+  const { currency, formatAmount } = useCurrency();
 
   const select = useCallback(
     (id: DeliveryMethodId) => {
@@ -92,7 +95,7 @@ export function DeliveryMethod({
                 </span>
               </span>
               <span className="shrink-0 text-sm font-medium tabular-nums text-stone-800">
-                {opt.amount === 0 ? "Free" : `LKR ${opt.amount.toLocaleString()}`}
+                {opt.amount === 0 ? "Free" : `${currency} ${formatAmount(opt.amount)}`}
               </span>
             </label>
           );

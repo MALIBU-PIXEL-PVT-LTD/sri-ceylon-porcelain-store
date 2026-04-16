@@ -1,5 +1,8 @@
+"use client";
+
 import type { ReactNode } from "react";
 
+import { useCurrency } from "@/context/CurrencyContext";
 import type { CartLine } from "@/types/cart";
 
 type CartSummaryProps = {
@@ -22,11 +25,21 @@ function sumLines(lines: CartLine[]) {
   return lines.reduce((acc, line) => acc + line.price * line.quantity, 0);
 }
 
-function Lkr({ amount }: { amount: number }) {
+function Money({
+  amount,
+  currency,
+  formatAmount,
+}: {
+  amount: number;
+  currency: string;
+  formatAmount: (amountLkr: number) => string;
+}) {
   return (
     <>
-      <span className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">LKR</span>{" "}
-      {amount.toLocaleString()}
+      <span className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">
+        {currency}
+      </span>{" "}
+      {formatAmount(amount)}
     </>
   );
 }
@@ -41,6 +54,7 @@ export function CartSummary({
   items,
   footer,
 }: CartSummaryProps) {
+  const { currency, formatAmount } = useCurrency();
   const subtotal =
     total !== undefined ? total : lines !== undefined ? sumLines(lines) : 0;
 
@@ -64,28 +78,32 @@ export function CartSummary({
           <div className="flex justify-between gap-4">
             <dt className="text-stone-600">Subtotal</dt>
             <dd className="font-medium tabular-nums text-stone-900">
-              <Lkr amount={subtotal} />
+              <Money amount={subtotal} currency={currency} formatAmount={formatAmount} />
             </dd>
           </div>
           <div className="flex justify-between gap-4">
             <dt className="text-stone-600">Shipping</dt>
             <dd className="font-medium tabular-nums text-stone-900">
-              {shipping === 0 ? "Free" : <Lkr amount={shipping} />}
+              {shipping === 0 ? (
+                "Free"
+              ) : (
+                <Money amount={shipping} currency={currency} formatAmount={formatAmount} />
+              )}
             </dd>
           </div>
           <div className="flex justify-between gap-4">
             <dt className="text-stone-600">Taxes (est.)</dt>
             <dd className="font-medium tabular-nums text-stone-900">
-              <Lkr amount={taxes} />
+              <Money amount={taxes} currency={currency} formatAmount={formatAmount} />
             </dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-stone-100 pt-4 text-base">
             <dt className="font-medium text-stone-900">Total</dt>
             <dd className="font-medium tabular-nums tracking-tight text-stone-900">
               <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-400">
-                LKR
+                {currency}
               </span>{" "}
-              {resolvedGrand.toLocaleString()}
+              {formatAmount(resolvedGrand)}
             </dd>
           </div>
         </dl>
@@ -95,9 +113,9 @@ export function CartSummary({
             <span className="text-base font-medium text-stone-900">Total</span>
             <span className="text-xl font-medium tabular-nums tracking-tight text-stone-900">
               <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-400">
-                LKR
+                {currency}
               </span>{" "}
-              {resolvedGrand.toLocaleString()}
+              {formatAmount(resolvedGrand)}
             </span>
           </div>
 

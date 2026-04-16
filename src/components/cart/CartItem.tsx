@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { uiRound } from "@/components/ui";
+import { useCurrency } from "@/context/CurrencyContext";
 import { getSkuForProductSize } from "@/lib/sku";
 import type { CartLine } from "@/types/cart";
 
@@ -32,6 +33,7 @@ export function CartItem({
 }: CartItemProps) {
   const lineTotal = line.price * line.quantity;
   const sku = getSkuForProductSize(line.slug, line.size);
+  const { currency, formatAmount } = useCurrency();
 
   const shellClass = embedded
     ? "flex items-start gap-4 border-0 bg-transparent py-6 first:pt-2 last:pb-2 sm:gap-5 sm:py-7"
@@ -104,9 +106,9 @@ export function CartItem({
             </span>{" "}
             <span className="font-medium tabular-nums text-stone-800">
               <span className="text-[0.65rem] uppercase tracking-[0.14em] text-stone-400">
-                LKR
+                {currency}
               </span>{" "}
-              {line.price.toLocaleString()}
+              {formatAmount(line.price)}
             </span>
           </p>
         ) : (
@@ -117,9 +119,9 @@ export function CartItem({
               </p>
               <p className="text-sm font-medium tabular-nums text-stone-800">
                 <span className="mr-1 text-[0.65rem] font-medium uppercase tracking-[0.14em] text-stone-400">
-                  LKR
+                  {currency}
                 </span>
-                {line.price.toLocaleString()}
+                {formatAmount(line.price)}
                 <span className="ml-1.5 whitespace-nowrap text-[0.8125rem] font-normal text-stone-500">
                   / each
                 </span>
@@ -179,9 +181,9 @@ export function CartItem({
             }
           >
             <span className="mr-1 text-[0.65rem] font-medium uppercase tracking-[0.14em] text-stone-400">
-              LKR
+              {currency}
             </span>
-            {lineTotal.toLocaleString()}
+            {formatAmount(lineTotal)}
           </p>
         </div>
 

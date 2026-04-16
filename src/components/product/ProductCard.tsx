@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
+import { useCurrency } from "@/context/CurrencyContext";
 import type { Product } from "@/types/product";
 
 type ProductCardProps = {
@@ -18,6 +21,7 @@ export function ProductCard({ product, imageSizes = defaultImageSizes }: Product
   const max = product.priceRangeMax;
   const showFrom =
     max != null && Number.isFinite(max) && max > product.price;
+  const { currency, formatAmount } = useCurrency();
 
   return (
     <Link
@@ -50,14 +54,14 @@ export function ProductCard({ product, imageSizes = defaultImageSizes }: Product
               </span>
             ) : null}
             <span className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-400">
-              LKR
+              {currency}
             </span>
             <span className="font-medium tracking-tight">
-              {product.price.toLocaleString()}
+              {formatAmount(product.price)}
               {showFrom ? (
                 <span className="font-normal text-stone-500">
                   {" "}
-                  – {max.toLocaleString()}
+                  – {formatAmount(max)}
                 </span>
               ) : null}
             </span>

@@ -9,32 +9,14 @@ import { useEffect, useRef, useState } from "react";
 import { CartDrawer } from "@/components/cart";
 import { Container, IconButton, uiRound } from "@/components/ui";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { auth } from "@/lib/firebase/firebase";
+import { getCurrencyLabel, getCurrencySymbol } from "@/lib/currency";
 
 const mainLinks = [
   { href: "/", label: "Home" },
   { href: "/products", label: "Products" },
 ] as const;
-
-type CurrencyCode = "LKR" | "USD" | "GBP";
-
-const currencyOptions: Array<{
-  code: CurrencyCode;
-  label: string; // Display label (ex: "USD ($)")
-  symbol: string; // Button symbol (ex: "$")
-}> = [
-  { code: "LKR", label: "LKR (Rs)", symbol: "Rs" },
-  { code: "USD", label: "USD ($)", symbol: "$" },
-  { code: "GBP", label: "GBP (£)", symbol: "£" },
-];
-
-function getCurrencySymbol(code: CurrencyCode) {
-  return currencyOptions.find((c) => c.code === code)?.symbol ?? "Rs";
-}
-
-function getCurrencyLabel(code: CurrencyCode) {
-  return currencyOptions.find((c) => c.code === code)?.label ?? "LKR (Rs)";
-}
 
 function CartIconWithBadge({ count }: { count: number }) {
   return (
@@ -55,12 +37,12 @@ export function Navbar() {
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
-  const [currency, setCurrency] = useState<CurrencyCode>("LKR");
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
   const currencyDesktopRef = useRef<HTMLDivElement | null>(null);
   const currencyMobileRef = useRef<HTMLDivElement | null>(null);
+  const { currency, setCurrency, availableCurrencies } = useCurrency();
   const {
     totalQuantity,
     cartDrawerOpen,
@@ -270,7 +252,7 @@ export function Navbar() {
                   aria-label="Currency"
                   className="absolute right-0 top-12 z-50 w-44 overflow-hidden rounded-md border border-zinc-800 bg-zinc-950 shadow-lg"
                 >
-                  {currencyOptions.map((opt) => {
+                  {availableCurrencies.map((opt) => {
                     const selected = opt.code === currency;
                     return (
                       <button
@@ -453,7 +435,7 @@ export function Navbar() {
                     aria-label="Currency"
                     className="absolute left-0 right-0 top-[100%] z-50 mt-2 overflow-hidden rounded-md border border-zinc-800 bg-zinc-950 shadow-lg"
                   >
-                    {currencyOptions.map((opt) => {
+                    {availableCurrencies.map((opt) => {
                       const selected = opt.code === currency;
                       return (
                         <button

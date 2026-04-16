@@ -3,6 +3,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { Container } from "@/components/ui";
 import { CartProvider } from "@/context/CartContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import { ProductBreadcrumbProvider } from "@/context/ProductBreadcrumbContext";
 import "./globals.css";
 
@@ -14,20 +15,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex min-h-screen flex-col text-stone-900">
-        <CartProvider>
-          <ProductBreadcrumbProvider>
-            <Navbar />
+        <CurrencyProvider>
+          <CartProvider>
+            <ProductBreadcrumbProvider>
+              <Navbar />
 
-            <main className="flex-1 py-10">
-              <Container>
-                <Breadcrumbs />
-                {children}
-              </Container>
-            </main>
+              <main className="flex-1 py-10">
+                <Container>
+                  <Breadcrumbs />
+                  {children}
+                </Container>
+              </main>
 
-            <Footer />
-          </ProductBreadcrumbProvider>
-        </CartProvider>
+              <Footer />
+            </ProductBreadcrumbProvider>
+          </CartProvider>
+        </CurrencyProvider>
       </body>
     </html>
   );
